@@ -80,9 +80,11 @@ if uploaded_file is not None:
     # Process the image
     output_image = cartoon(temp_file_path)
 
-    if output_image is not None:
-        # Display the output image
-        st.image(output_image, caption='Cartoonified Image',
-                 use_column_width=True)
-    else:
-        st.error("Failed to process the image.")
+st.image(output_image)
+
+# if output_image is not None:
+#     # Display the output image
+#     st.image(output_image, caption='Cartoonified Image',
+#              use_column_width=True)
+# else:
+#     st.error("Failed to process the image.")
