@@ -12,9 +12,9 @@ os.makedirs("temp", exist_ok=True)
 
 def li(p):
     img = Image.open(p).convert('RGB')
-    img = np.array(img).astype(np.float32) / 127.5 - 1
+    img = np.array(img).astype(np.float32) / 255.0  # Normalize to [0, 1]
     img = np.expand_dims(img, 0)
-    return tf.convert_to_tensor(img)
+    return img  # Return NumPy array instead of tensor
 
 # Preprocess image
 
@@ -30,48 +30,59 @@ def pi(img, td=224):
 
 
 def cartoon(img_p):
-    # Loading image
-    si = li(img_p)
+    try:
+        # Loading image
+        si = li(img_p)
+        print(f"Loaded image shape: {si.shape}")
 
-    psi = pi(si, td=512)
-    psi.shape
+        # Convert NumPy array to tensor
+        si_tensor = tf.convert_to_tensor(si, dtype=tf.float32)
+        print(f"Converted tensor shape: {si_tensor.shape}")
 
-    # Model dataflow
-    m = 'cartoon_model.tflite'
-    i = tf.lite.Interpreter(model_path=m)
-    ind = i.get_input_details()
-    i.allocate_tensors()
-    i.set_tensor(ind[0]['index'], psi)
-    i.invoke()
+        psi = pi(si_tensor, td=512)
+        print(f"Preprocessed image shape: {psi.shape}")
 
-    r = i.tensor(i.get_output_details()[0]['index'])()
+        # Model dataflow
+        m = 'cartoon_model.tflite'
+        i = tf.lite.Interpreter(model_path=m)
+        ind = i.get_input_details()
+        print(f"Model input details: {ind}")
 
-    # Post process the model output
-    o = (np.squeeze(r) + 1.0) * 127.5
-    o = np.clip(o, 0, 255).astype(np.uint8)
-    o = Image.fromarray(o)
-    o = o.convert('RGB')
+        i.allocate_tensors()
+        i.set_tensor(ind[0]['index'], psi)
+        i.invoke()
 
-    return o
+        r = i.tensor(i.get_output_details()[0]['index'])()
+        print(f"Model output shape: {r.shape}")
+
+        # Post process the model output
+        o = (np.squeeze(r) + 1.0) * 127.5
+        o = np.clip(o, 0, 255).astype(np.uint8)
+        o = Image.fromarray(o)
+        o = o.convert('RGB')
+
+        return o
+    except Exception as e:
+        print(f"Error during processing: {e}")
+        return None
 
 
 # Streamlit app
 st.title('Cartoonify Your Image')
 
-uploaded_file = st.file_uploader(
-    "Choose an image...", type=["jpg", "jpeg", "png"])
-
-if uploaded_file is not None:
-    # Save the uploaded file to a temporary location
-    temp_file_path = os.path.join("temp", uploaded_file.name)
-    with open(temp_file_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-
-    # Display the input image
-    st.image(temp_file_path, caption='Input Image', use_column_width=True)
-
-    # Process the image
+temp_file_path = 'karina.jpg'
+if os.path.exists(temp_file_path):
     output_image = cartoon(temp_file_path)
+    if output_image is not None:
+        st.image(output_image, caption='Cartoonified Image')
+    else:
+        st.error(
+            "Failed to process the image. Please check the console for error details.")
+else:
+    st.error(f"File not found: {temp_file_path}")
 
-    # Display the output image
-    st.image(output_image, caption='Cartoonified Image', use_column_width=True)
+# Print additional debug information
+print(f"Output image type: {type(output_image)}")
+if isinstance(output_image, Image.Image):
+    print(f"Output image size: {output_image.size}")
+    print(f"Output image mode: {output_image.mode}")
