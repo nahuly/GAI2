@@ -1,6 +1,4 @@
 import streamlit as st
-import os
-import cv2
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -11,7 +9,7 @@ import io
 
 
 def li(img):
-    img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+    img = np.array(img.convert('RGB'))
     img = img.astype(np.float32)/127.5 - 1
     img = np.expand_dims(img, 0)
     img = tf.convert_to_tensor(img)
@@ -49,7 +47,7 @@ def cartoon(img):
     # Post process the model output
     o = (np.squeeze(r)+1.0)*127.5
     o = np.clip(o, 0, 255).astype(np.uint8)
-    o = cv2.cvtColor(o, cv2.COLOR_BGR2RGB)
+    o = Image.fromarray(o)
 
     return o
 
