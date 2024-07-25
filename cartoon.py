@@ -30,36 +30,29 @@ def pi(img, td=224):
 
 
 def cartoon(img_p):
-    try:
-        # Loading image
-        si = li(img_p)
-        print(f"Loaded image shape: {si.shape}")
+    # Loading image
+    si = li(img_p)
 
-        psi = pi(si, td=512)
-        print(f"Preprocessed image shape: {psi.shape}")
+    psi = pi(si, td=512)
+    psi.shape
 
-        # Model dataflow
-        m = 'cartoon_model.tflite'
-        i = tf.lite.Interpreter(model_path=m)
-        ind = i.get_input_details()
-        print(f"Model input details: {ind}")
+    # Model dataflow
+    m = 'cartoon_model.tflite'
+    i = tf.lite.Interpreter(model_path=m)
+    ind = i.get_input_details()
+    i.allocate_tensors()
+    i.set_tensor(ind[0]['index'], psi)
+    i.invoke()
 
-        i.allocate_tensors()
-        i.set_tensor(ind[0]['index'], psi)
-        i.invoke()
+    r = i.tensor(i.get_output_details()[0]['index'])()
 
-        r = i.tensor(i.get_output_details()[0]['index'])()
-        print(f"Model output: {r}")
+    # Post process the model output
+    o = (np.squeeze(r) + 1.0) * 127.5
+    o = np.clip(o, 0, 255).astype(np.uint8)
+    o = Image.fromarray(o)
+    o = o.convert('RGB')
 
-        # Post process the model output
-        o = (np.squeeze(r) + 1.0) * 127.5
-        o = np.clip(o, 0, 255).astype(np.uint8)
-        o = Image.fromarray(o)
-        o = o.convert('RGB')
-
-        return o
-    except Exception as e:
-        print(f"Error during processing: {e}")
+    return o
 
 
 # Streamlit app
@@ -68,27 +61,17 @@ st.title('Cartoonify Your Image')
 uploaded_file = st.file_uploader(
     "Choose an image...", type=["jpg", "jpeg", "png"])
 
+if uploaded_file is not None:
+    # Save the uploaded file to a temporary location
+    temp_file_path = os.path.join("temp", uploaded_file.name)
+    with open(temp_file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
 
-temp_file_path = 'karina.jpg'
-output_image = cartoon(temp_file_path)
-st.image(output_image)
+    # Display the input image
+    st.image(temp_file_path, caption='Input Image', use_column_width=True)
 
+    # Process the image
+    output_image = cartoon(temp_file_path)
 
-# if uploaded_file is not None:
-#     # Save the uploaded file to a temporary location
-#     temp_file_path = os.path.join("temp", uploaded_file.name)
-#     with open(temp_file_path, "wb") as f:
-#         f.write(uploaded_file.getbuffer())
-
-#     # Display the input image
-#     st.image(temp_file_path, caption='Input Image', use_column_width=True)
-
-#     # Process the image
-#     output_image = cartoon(temp_file_path)
-
-#     if output_image is not None:
-#         # Display the output image
-#         st.image(output_image, caption='Cartoonified Image',
-#                  use_column_width=True)
-#     else:
-#         st.error("Failed to process the image.")
+    # Display the output image
+    st.image(output_image, caption='Cartoonified Image', use_column_width=True)
