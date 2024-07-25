@@ -1,4 +1,4 @@
 streamlit
 tensorflow
-skimage
+scikit-image
 tensorflow.python
