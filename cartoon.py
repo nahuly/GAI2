@@ -30,29 +30,36 @@ def pi(img, td=224):
 
 
 def cartoon(img_p):
-    # Loading image
-    si = li(img_p)
+    try:
+        # Loading image
+        si = li(img_p)
+        print(f"Loaded image shape: {si.shape}")
 
-    psi = pi(si, td=512)
-    psi.shape
+        psi = pi(si, td=512)
+        print(f"Preprocessed image shape: {psi.shape}")
 
-    # Model dataflow
-    m = 'cartoon_model.tflite'
-    i = tf.lite.Interpreter(model_path=m)
-    ind = i.get_input_details()
-    i.allocate_tensors()
-    i.set_tensor(ind[0]['index'], psi)
-    i.invoke()
+        # Model dataflow
+        m = 'cartoon_model.tflite'
+        i = tf.lite.Interpreter(model_path=m)
+        ind = i.get_input_details()
+        print(f"Model input details: {ind}")
 
-    r = i.tensor(i.get_output_details()[0]['index'])()
+        i.allocate_tensors()
+        i.set_tensor(ind[0]['index'], psi)
+        i.invoke()
 
-    # Post process the model output
-    o = (np.squeeze(r) + 1.0) * 127.5
-    o = np.clip(o, 0, 255).astype(np.uint8)
-    o = Image.fromarray(o)
-    o = o.convert('RGB')
+        r = i.tensor(i.get_output_details()[0]['index'])()
+        print(f"Model output: {r}")
 
-    return o
+        # Post process the model output
+        o = (np.squeeze(r) + 1.0) * 127.5
+        o = np.clip(o, 0, 255).astype(np.uint8)
+        o = Image.fromarray(o)
+        o = o.convert('RGB')
+
+        return o
+    except Exception as e:
+        print(f"Error during processing: {e}")
 
 
 # Streamlit app
@@ -73,5 +80,9 @@ if uploaded_file is not None:
     # Process the image
     output_image = cartoon(temp_file_path)
 
-    # Display the output image
-    st.image(output_image, caption='Cartoonified Image', use_column_width=True)
+    if output_image is not None:
+        # Display the output image
+        st.image(output_image, caption='Cartoonified Image',
+                 use_column_width=True)
+    else:
+        st.error("Failed to process the image.")
