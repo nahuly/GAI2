@@ -70,19 +70,20 @@ def cartoon(img_p):
 # Streamlit app
 st.title('Cartoonify Your Image')
 
-temp_file_path = 'karina.jpg'
-if os.path.exists(temp_file_path):
-    output_image = cartoon(temp_file_path)
-    if output_image is not None:
-        st.image(output_image, caption='Cartoonified Image')
-    else:
-        st.error(
-            "Failed to process the image. Please check the console for error details.")
-else:
-    st.error(f"File not found: {temp_file_path}")
+uploaded_file = st.file_uploader(
+    "Choose an image...", type=["jpg", "jpeg", "png"])
 
-# Print additional debug information
-print(f"Output image type: {type(output_image)}")
-if isinstance(output_image, Image.Image):
-    print(f"Output image size: {output_image.size}")
-    print(f"Output image mode: {output_image.mode}")
+if uploaded_file is not None:
+    # Save the uploaded file to a temporary location
+    temp_file_path = os.path.join("temp", uploaded_file.name)
+    with open(temp_file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
+    # Display the input image
+    st.image(temp_file_path, caption='Input Image', use_column_width=True)
+
+    # Process the image
+    output_image = cartoon(temp_file_path)
+
+    # Display the output image
+    st.image(output_image, caption='Cartoonified Image', use_column_width=True)
