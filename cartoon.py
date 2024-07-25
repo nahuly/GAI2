@@ -8,17 +8,17 @@ import streamlit as st
 # Ensure the temp directory exists
 os.makedirs("temp", exist_ok=True)
 
-# load image
+# Load image
 
 
 def li(p):
-    img = Image.open(p)
+    img = Image.open(p).convert('RGB')
     img = np.array(img).astype(np.float32) / 127.5 - 1
     img = np.expand_dims(img, 0)
     img = tf.convert_to_tensor(img)
     return img
 
-# preprocess image
+# Preprocess image
 
 
 def pi(img, td=224):
@@ -32,13 +32,13 @@ def pi(img, td=224):
 
 
 def cartoon(img_p):
-    # loading image
+    # Loading image
     si = li(img_p)
 
     psi = pi(si, td=512)
     psi.shape
 
-    # model dataflow
+    # Model dataflow
     m = 'cartoon_model.tflite'
     i = tf.lite.Interpreter(model_path=m)
     ind = i.get_input_details()
@@ -48,7 +48,7 @@ def cartoon(img_p):
 
     r = i.tensor(i.get_output_details()[0]['index'])()
 
-    # post process the model output
+    # Post process the model output
     o = (np.squeeze(r) + 1.0) * 127.5
     o = np.clip(o, 0, 255).astype(np.uint8)
     o = Image.fromarray(o)
