@@ -2,7 +2,6 @@ import os
 import numpy as np
 import tensorflow as tf
 from PIL import Image
-from skimage import transform
 import streamlit as st
 
 # Ensure the temp directory exists
@@ -15,15 +14,14 @@ def li(p):
     img = Image.open(p).convert('RGB')
     img = np.array(img).astype(np.float32) / 127.5 - 1
     img = np.expand_dims(img, 0)
-    img = tf.convert_to_tensor(img)
-    return img
+    return tf.convert_to_tensor(img)
 
 # Preprocess image
 
 
 def pi(img, td=224):
     shp = tf.cast(tf.shape(img)[1:-1], tf.float32)
-    sd = min(shp)
+    sd = tf.reduce_min(shp)
     scl = td / sd
     nhp = tf.cast(shp * scl, tf.int32)
     img = tf.image.resize(img, nhp)
