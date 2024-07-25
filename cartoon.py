@@ -34,9 +34,11 @@ def cartoon(img_p):
         # Loading image
         si = li(img_p)
         st.write(f"Loaded image shape: {si.shape}")
+        st.write(f"Loaded image type: {type(si)}")
 
         psi = pi(si, td=512)
         st.write(f"Preprocessed image shape: {psi.shape}")
+        st.write(f"Preprocessed image type: {type(psi)}")
 
         # Model dataflow
         m = 'cartoon_model.tflite'
@@ -49,9 +51,11 @@ def cartoon(img_p):
         i.invoke()
 
         r = i.tensor(i.get_output_details()[0]['index'])()
-        st.write(f"Model output shape: {r.shape}")
+        st.write(f"Model output type: {type(r)}")
+        st.write(f"Model output: {r}")
 
         # Post process the model output
+        r = np.array(r)  # Ensure r is a numpy array
         o = (np.squeeze(r) + 1.0) * 127.5
         o = np.clip(o, 0, 255).astype(np.uint8)
         o = Image.fromarray(o)
