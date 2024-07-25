@@ -5,7 +5,6 @@ from PIL import Image
 from skimage import transform
 import streamlit as st
 
-
 # Ensure the temp directory exists
 os.makedirs("temp", exist_ok=True)
 
