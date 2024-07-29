@@ -305,8 +305,8 @@ def main():
                 st.experimental_rerun()
     elif st.session_state.current_test == "해리포터":
         run_harry_potter_test()
-    elif st.session_state.current_test == "cartoon":
-        run_cartoon_test()
+    # elif st.session_state.current_test == "cartoon":
+    #     run_cartoon_test()
 
 
 if __name__ == "__main__":
