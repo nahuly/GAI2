@@ -133,6 +133,14 @@ def run_harry_potter_test():
             st.session_state.current_question = 0
             st.session_state.answers = []
             st.session_state.page = "harry_potter_test"
+
+        if st.button("메인 화면으로 돌아가기"):
+            st.session_state.current_test = None
+            st.session_state.test_started = False
+            st.session_state.current_question = 0
+            st.session_state.answers = []
+            st.session_state.page = "main"
+
     elif st.session_state.current_question < len(questions):
         q = questions[st.session_state.current_question]
         answer = st.radio(
@@ -163,23 +171,18 @@ def show_harry_potter_result():
 
     st.write(descriptions[result])
 
-    # st.write("## 상세 결과")
-    # for house in ["그리핀도르", "슬리데린", "후플푸프", "래번클로"]:
-    #     count = st.session_state.answers.count(house)
-    #     st.write(f"{house}: {count}문항")
-
     if st.button("테스트 다시 하기"):
         st.session_state.test_started = False
         st.session_state.current_question = 0
         st.session_state.answers = []
-        st.experimental_rerun()
+        st.session_state.page = "harry_potter_test"
 
     if st.button("메인 화면으로 돌아가기"):
         st.session_state.current_test = None
         st.session_state.test_started = False
         st.session_state.current_question = 0
         st.session_state.answers = []
-        st.experimental_rerun()
+        st.session_state.page = "main"
 
 
 # Ensure the temp directory exists
