@@ -132,7 +132,7 @@ def run_harry_potter_test():
             st.session_state.test_started = True
             st.session_state.current_question = 0
             st.session_state.answers = []
-            st.experimental_rerun()
+            st.session_state.page = "harry_potter_test"
     elif st.session_state.current_question < len(questions):
         q = questions[st.session_state.current_question]
         answer = st.radio(
@@ -142,7 +142,7 @@ def run_harry_potter_test():
             st.session_state.answers.append(
                 q['points'][q['options'].index(answer)])
             st.session_state.current_question += 1
-            st.experimental_rerun()
+            st.session_state.page = "harry_potter_test"
     else:
         show_harry_potter_result()
 
