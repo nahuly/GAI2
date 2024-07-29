@@ -284,15 +284,17 @@ def main():
         st.session_state.current_question = 0
     if 'answers' not in st.session_state:
         st.session_state.answers = []
+    if 'page' not in st.session_state:
+        st.session_state.page = "main"
 
-    if st.session_state.current_test is None:
+    if st.session_state.page == "main":
         st.write("아래 버튼 중 하나를 선택하여 심리 테스트를 시작하세요.")
         st.image(main_logo, width=600)
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             if st.button("해리포터 기숙사 심리테스트"):
                 st.session_state.current_test = "해리포터"
-                st.experimental_rerun()
+                st.session_state.page = "harry_potter_test"
         with col2:
             if st.button("다른 심리테스트 1"):
                 st.write("준비 중입니다.")
@@ -302,11 +304,11 @@ def main():
         with col4:
             if st.button("이미지 카툰화"):
                 st.session_state.current_test = "cartoon"
-                st.experimental_rerun()
-    elif st.session_state.current_test == "해리포터":
+                st.session_state.page = "cartoon"
+    elif st.session_state.page == "harry_potter_test":
         run_harry_potter_test()
-    # elif st.session_state.current_test == "cartoon":
-    #     run_cartoon_test()
+    elif st.session_state.page == "cartoon":
+        run_cartoon_test()
 
 
 if __name__ == "__main__":
