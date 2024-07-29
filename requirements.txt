@@ -3,3 +3,4 @@ tensorflow
 scikit-image
 # tensorflow.python
 rembg
+torch
