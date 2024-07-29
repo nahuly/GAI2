@@ -272,7 +272,7 @@ def run_cartoon_test():
 
     if st.button("메인 화면으로 돌아가기"):
         st.session_state.current_test = None
-        st.experimental_rerun()
+        st.session_state.page = "main"
 
 
 def main():
