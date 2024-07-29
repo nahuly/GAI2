@@ -5,3 +5,4 @@ scikit-image
 rembg
 torch
 torchvision
+stylegan2_pytorch
