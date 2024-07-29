@@ -123,43 +123,6 @@ main_logo = "hogwarts.png"
 second_logo = "house_hat.png"
 
 
-def main():
-    st.title("다양한 심리 테스트")
-
-    # 세션 상태 초기화
-    if 'current_test' not in st.session_state:
-        st.session_state.current_test = None
-    if 'test_started' not in st.session_state:
-        st.session_state.test_started = False
-    if 'current_question' not in st.session_state:
-        st.session_state.current_question = 0
-    if 'answers' not in st.session_state:
-        st.session_state.answers = []
-
-    if st.session_state.current_test is None:
-        st.write("아래 버튼 중 하나를 선택하여 심리 테스트를 시작하세요.")
-        st.image(main_logo, width=600)
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            if st.button("해리포터 기숙사 심리테스트"):
-                st.session_state.current_test = "해리포터"
-                st.experimental_rerun()
-        with col2:
-            if st.button("다른 심리테스트 1"):
-                st.write("준비 중입니다.")
-        with col3:
-            if st.button("다른 심리테스트 2"):
-                st.write("준비 중입니다.")
-        with col4:
-            if st.button("이미지 카툰화"):
-                st.session_state.current_test = "cartoon"
-                st.experimental_rerun()
-    elif st.session_state.current_test == "해리포터":
-        run_harry_potter_test()
-    elif st.session_state.current_test == "cartoon":
-        run_cartoon_test()
-
-
 def run_harry_potter_test():
     if not st.session_state.test_started:
         st.write("## 호그와트 기숙사 배정 테스트")
@@ -307,6 +270,43 @@ def run_cartoon_test():
     if st.button("메인 화면으로 돌아가기"):
         st.session_state.current_test = None
         st.experimental_rerun()
+
+
+def main():
+    st.title("다양한 심리 테스트")
+
+    # 세션 상태 초기화
+    if 'current_test' not in st.session_state:
+        st.session_state.current_test = None
+    if 'test_started' not in st.session_state:
+        st.session_state.test_started = False
+    if 'current_question' not in st.session_state:
+        st.session_state.current_question = 0
+    if 'answers' not in st.session_state:
+        st.session_state.answers = []
+
+    if st.session_state.current_test is None:
+        st.write("아래 버튼 중 하나를 선택하여 심리 테스트를 시작하세요.")
+        st.image(main_logo, width=600)
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            if st.button("해리포터 기숙사 심리테스트"):
+                st.session_state.current_test = "해리포터"
+                st.experimental_rerun()
+        with col2:
+            if st.button("다른 심리테스트 1"):
+                st.write("준비 중입니다.")
+        with col3:
+            if st.button("다른 심리테스트 2"):
+                st.write("준비 중입니다.")
+        with col4:
+            if st.button("이미지 카툰화"):
+                st.session_state.current_test = "cartoon"
+                st.experimental_rerun()
+    elif st.session_state.current_test == "해리포터":
+        run_harry_potter_test()
+    elif st.session_state.current_test == "cartoon":
+        run_cartoon_test()
 
 
 if __name__ == "__main__":
