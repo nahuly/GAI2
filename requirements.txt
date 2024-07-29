@@ -2,4 +2,3 @@ streamlit
 tensorflow
 scikit-image
 # tensorflow.python
-opencv-python
