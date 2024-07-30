@@ -195,13 +195,15 @@ def calculate_enneagram(answers):
 
 
 def run_enneagram_test():
-    # Set the title of the app
     st.title("Enneagram Type Assessment")
 
-    # Introduction text
-    st.write("Answer the following questions to find out your Enneagram type:")
+    if 'test_started' not in st.session_state:
+        st.session_state.test_started = False
+    if 'current_question' not in st.session_state:
+        st.session_state.current_question = 0
+    if 'answers' not in st.session_state:
+        st.session_state.answers = []
 
-    # Define the questions
     questions_en = [
         "I strive for perfection.",
         "I work hard to be helpful to others.",
@@ -214,27 +216,35 @@ def run_enneagram_test():
         "I am easy-going and relaxed."
     ]
 
-    # Collect answers from user
-    answers = []
-    for i, question in enumerate(questions_en):
-        answer = st.radio(question, options=[
-            "Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"], index=2, key=i)
-        answers.append(answer)
+    if not st.session_state.test_started:
+        st.write("Answer the following questions to find out your Enneagram type:")
+        if st.button("Start Test"):
+            st.session_state.test_started = True
+            st.session_state.current_question = 0
+            st.session_state.answers = []
+            st.experimental_rerun()
+    else:
+        if st.session_state.current_question < len(questions_en):
+            question = questions_en[st.session_state.current_question]
+            answer = st.radio(question, options=[
+                "Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"], key=f"q_{st.session_state.current_question}")
 
-    # Convert answers to numerical values
-    answer_mapping = {
-        "Strongly Disagree": 1,
-        "Disagree": 2,
-        "Neutral": 3,
-        "Agree": 4,
-        "Strongly Agree": 5
-    }
-    numerical_answers = [answer_mapping[answer] for answer in answers]
-
-    # Button to submit answers
-    if st.button("Submit"):
-        enneagram_type = calculate_enneagram(numerical_answers)
-        st.write(f"Your Enneagram type is: {enneagram_type}")
+            if st.button("Next"):
+                st.session_state.answers.append(answer)
+                st.session_state.current_question += 1
+                st.experimental_rerun()
+        else:
+            answer_mapping = {
+                "Strongly Disagree": 1,
+                "Disagree": 2,
+                "Neutral": 3,
+                "Agree": 4,
+                "Strongly Agree": 5
+            }
+            numerical_answers = [answer_mapping[answer]
+                                 for answer in st.session_state.answers]
+            enneagram_type = calculate_enneagram(numerical_answers)
+            st.write(f"Your Enneagram type is: {enneagram_type}")
 
     if st.button("테스트 다시 하기"):
         st.session_state.test_started = False
