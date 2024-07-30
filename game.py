@@ -1,9 +1,27 @@
 import streamlit as st
 import pygame
 import random
-import time
 
-# 초기화
+# Streamlit 인터페이스 설정
+st.title("장애물 피하기 게임")
+st.write("화살표 키를 사용하여 장애물을 피해보세요!")
+
+# 게임 상태 변수
+game_running = False
+game_paused = False
+
+# 버튼 설정
+if st.button('시작'):
+    game_running = True
+    game_paused = False
+
+if st.button('일시정지'):
+    game_paused = True
+
+if st.button('다시 시작'):
+    game_paused = False
+
+# pygame 초기화
 pygame.init()
 
 # 화면 크기 설정
@@ -82,18 +100,15 @@ def detect_collision(player_pos, obstacle_pos):
     return False
 
 
-# Streamlit 인터페이스 설정
-st.title("장애물 피하기 게임")
-st.write("화살표 키를 사용하여 장애물을 피해보세요!")
-
 # 게임 루프
-game_over = False
+while game_running:
 
-while not game_over:
+    if game_paused:
+        continue
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            game_over = True
+            game_running = False
 
         if event.type == pygame.KEYDOWN:
             x = player_pos[0]
@@ -111,7 +126,7 @@ while not game_over:
     score = update_obstacle_positions(obstacle_list, score)
 
     if collision_check(obstacle_list, player_pos):
-        game_over = True
+        game_running = False
         break
 
     for obstacle_pos in obstacle_list:
