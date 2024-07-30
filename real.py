@@ -1,62 +1,52 @@
 import streamlit as st
-from PIL import Image
-import io
-from rembg import remove
-import torch
-from torchvision import transforms
-from stylegan2_pytorch import ModelLoader
+import pandas as pd
+import numpy as np
 
 
-def load_stylegan_model():
-    model = ModelLoader(
-        name='stylegan2-ffhq-config-f',
-        latent_dim=512,
-        truncation=0.7
-    )
-    return model
+def calculate_enneagram(answers):
+    # This is a placeholder logic for calculating Enneagram type
+    # Replace this with the actual logic based on your questionnaire
+    scores = np.random.randint(1, 10, size=9)
+    return np.argmax(scores) + 1
 
 
-def generate_realistic_image(model, input_image):
-    # 이미지를 StyleGAN2의 입력 형식으로 변환
-    transform = transforms.Compose([
-        transforms.Resize((1024, 1024)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
-    ])
-    input_tensor = transform(input_image).unsqueeze(0)
+# Set the title of the app
+st.title("Enneagram Type Assessment")
 
-    # StyleGAN2를 사용하여 실사화된 이미지 생성
-    with torch.no_grad():
-        output = model.model(input_tensor)
+# Introduction text
+st.write("Answer the following questions to find out your Enneagram type:")
 
-    # 출력을 PIL 이미지로 변환
-    output_image = transforms.ToPILImage()(
-        output[0].cpu().clamp(-1, 1) * 0.5 + 0.5)
-    return output_image
+# Define the questions
+questions = [
+    "I strive for perfection.",
+    "I work hard to be helpful to others.",
+    "It is important to me to be admired by others.",
+    "I am always busy and productive.",
+    "I am very sensitive and can be easily hurt.",
+    "I seek security and safety.",
+    "I am always looking for new experiences.",
+    "I am a natural leader.",
+    "I am easy-going and relaxed."
+]
 
+# Collect answers from user
+answers = []
+for i, question in enumerate(questions):
+    answer = st.radio(question, options=[
+                      "Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"], index=2, key=i)
+    answers.append(answer)
 
-def main():
-    st.title("실사화 이미지 변환 앱")
+# Convert answers to numerical values
+answer_mapping = {
+    "Strongly Disagree": 1,
+    "Disagree": 2,
+    "Neutral": 3,
+    "Agree": 4,
+    "Strongly Agree": 5
+}
+numerical_answers = [answer_mapping[answer] for answer in answers]
 
-    uploaded_file = st.file_uploader(
-        "이미지를 선택하세요...", type=["png", "jpg", "jpeg"])
-
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        st.image(image, caption='업로드된 이미지', use_column_width=True)
-
-        # 배경 제거
-        if st.button('배경 제거'):
-            output = remove(image)
-            st.image(output, caption='배경이 제거된 이미지', use_column_width=True)
-
-            # 실사화 변환
-            if st.button('실사화 변환'):
-                model = load_stylegan_model()
-                realistic_image = generate_realistic_image(model, output)
-                st.image(realistic_image, caption='실사화된 이미지',
-                         use_column_width=True)
-
-
-if __name__ == "__main__":
-    main()
+# Button to submit answers
+if st.button("Submit"):
+    enneagram_type = calculate_enneagram(numerical_answers)
+    st.write(f"Your Enneagram type is: {enneagram_type}")
