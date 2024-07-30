@@ -197,6 +197,7 @@ def calculate_enneagram(answers):
 def run_enneagram_test():
     st.title("Enneagram Type Assessment")
 
+    # Initialize session state variables
     if 'test_started' not in st.session_state:
         st.session_state.test_started = False
     if 'current_question' not in st.session_state:
@@ -222,8 +223,8 @@ def run_enneagram_test():
             st.session_state.test_started = True
             st.session_state.current_question = 0
             st.session_state.answers = []
-            st.experimental_rerun()
     else:
+        # Display current question
         if st.session_state.current_question < len(questions_en):
             question = questions_en[st.session_state.current_question]
             answer = st.radio(question, options=[
@@ -232,8 +233,8 @@ def run_enneagram_test():
             if st.button("Next"):
                 st.session_state.answers.append(answer)
                 st.session_state.current_question += 1
-                st.experimental_rerun()
         else:
+            # Calculate and display the Enneagram type
             answer_mapping = {
                 "Strongly Disagree": 1,
                 "Disagree": 2,
