@@ -1,14 +1,16 @@
 import streamlit as st
 import pygame
 import random
-
-# Streamlit 인터페이스 설정
-st.title("장애물 피하기 게임")
-st.write("화살표 키를 사용하여 장애물을 피해보세요!")
+import threading
+import time
 
 # 게임 상태 변수
 game_running = False
 game_paused = False
+
+# Streamlit 인터페이스 설정
+st.title("장애물 피하기 게임")
+st.write("화살표 키를 사용하여 장애물을 피해보세요!")
 
 # 버튼 설정
 if st.button('시작'):
@@ -21,7 +23,7 @@ if st.button('일시정지'):
 if st.button('다시 시작'):
     game_paused = False
 
-# pygame 초기화
+# Pygame 초기화
 pygame.init()
 
 # 화면 크기 설정
@@ -99,50 +101,58 @@ def detect_collision(player_pos, obstacle_pos):
             return True
     return False
 
+# 게임 루프를 별도의 스레드에서 실행
 
-# 게임 루프
-while game_running:
 
-    if game_paused:
-        continue
+def game_loop():
+    global game_running, game_paused, score, player_pos, obstacle_list
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+    while game_running:
+        if game_paused:
+            continue
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game_running = False
+
+            if event.type == pygame.KEYDOWN:
+                x = player_pos[0]
+                y = player_pos[1]
+                if event.key == pygame.K_LEFT:
+                    x -= player_size
+                elif event.key == pygame.K_RIGHT:
+                    x += player_size
+
+                player_pos = [x, y]
+
+        screen.fill(black)
+
+        drop_obstacles(obstacle_list)
+        score = update_obstacle_positions(obstacle_list, score)
+
+        if collision_check(obstacle_list, player_pos):
             game_running = False
+            break
 
-        if event.type == pygame.KEYDOWN:
-            x = player_pos[0]
-            y = player_pos[1]
-            if event.key == pygame.K_LEFT:
-                x -= player_size
-            elif event.key == pygame.K_RIGHT:
-                x += player_size
+        for obstacle_pos in obstacle_list:
+            pygame.draw.rect(
+                screen, red, (obstacle_pos[0], obstacle_pos[1], obstacle_size, obstacle_size))
 
-            player_pos = [x, y]
-
-    screen.fill(black)
-
-    drop_obstacles(obstacle_list)
-    score = update_obstacle_positions(obstacle_list, score)
-
-    if collision_check(obstacle_list, player_pos):
-        game_running = False
-        break
-
-    for obstacle_pos in obstacle_list:
         pygame.draw.rect(
-            screen, red, (obstacle_pos[0], obstacle_pos[1], obstacle_size, obstacle_size))
+            screen, white, (player_pos[0], player_pos[1], player_size, player_size))
 
-    pygame.draw.rect(
-        screen, white, (player_pos[0], player_pos[1], player_size, player_size))
+        text = font.render("Score: {}".format(score), True, white)
+        screen.blit(text, (10, 10))
 
-    text = font.render("Score: {}".format(score), True, white)
-    screen.blit(text, (10, 10))
+        clock.tick(30)
 
-    clock.tick(30)
+        pygame.display.update()
 
-    pygame.display.update()
+    pygame.quit()
+    st.write("게임 종료!")
+    st.write(f"최종 점수: {score}")
 
-pygame.quit()
-st.write("게임 종료!")
-st.write(f"최종 점수: {score}")
+
+# 게임 루프를 스레드로 실행
+if game_running and not game_paused:
+    threading.Thread(target=game_loop).start()
