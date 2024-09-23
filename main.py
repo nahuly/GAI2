@@ -51,19 +51,19 @@ def main():
         for question, response in st.session_state.responses.items():
             for spirit in data.columns:
                 if question == "당신이 선호하는 신장은?":
-                    if response == data.loc['신장', spirit]:
+                    if response == data.loc['hg', spirit]:
                         scores[spirit] += 1
                 elif question == "어떤 취미를 가진 정령을 좋아하시나요?":
-                    if response == data.loc['취미', spirit]:
+                    if response == data.loc['hobby', spirit]:
                         scores[spirit] += 1
                 elif question == "어떤 특기를 가진 정령을 선호하시나요?":
-                    if response == data.loc['특기', spirit]:
+                    if response == data.loc['specialty', spirit]:
                         scores[spirit] += 1
                 elif question == "정령이 좋아하는 것 중 당신의 취향과 맞는 것은?":
-                    if response == data.loc['좋아하는 것', spirit]:
+                    if response == data.loc['like', spirit]:
                         scores[spirit] += 1
                 elif question == "어떤 색상의 정령을 선호하시나요?":
-                    if response.lower() == data.loc['캐릭터 색상', spirit].lower():
+                    if response.lower() == data.loc['char_color', spirit].lower():
                         scores[spirit] += 1
 
         # 점수에 따라 정령 정렬
