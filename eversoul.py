@@ -25,7 +25,7 @@ def load_spirit_image(spirit_name):
 
 
 data = load_data()
-st.write(data)
+# st.write(data)
 
 # 웹사이트 제목
 st.title("당신의 최애 정령 찾기")
@@ -39,8 +39,8 @@ questions = {
     "어떤 색상의 정령을 선호하시나요?": data['캐릭터 색상'].unique().tolist()
 }
 
-st.write(data)
-st.write(data['name'])
+# st.write(data)
+# st.write(data['name'])
 # st.write(data['소속'].unique().tolist())
 # st.write(data.loc[data['name'] == '제이드', '신장'].values[0])
 
