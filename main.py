@@ -74,7 +74,7 @@ def main():
             scores.items(), key=lambda x: x[1], reverse=True)
 
         # 결과 페이지로 이동
-        st.experimental_rerun()
+        st.rerun()
 
 
 if __name__ == "__main__":
