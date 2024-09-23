@@ -37,6 +37,8 @@ def main():
         "어떤 색상의 정령을 선호하시나요?": data.loc['캐릭터 색상'].unique().tolist()
     }
 
+    st.write(questions)
+
     # # 질문 표시 및 응답 수집
     # for question, options in questions.items():
     #     response = st.selectbox(question, options, key=question)
