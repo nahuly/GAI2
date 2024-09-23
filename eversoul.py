@@ -22,7 +22,7 @@ st.title("당신의 최애 정령 찾기")
 
 # 질문 및 선택지 설정
 questions = {
-    "당신이 선호하는 신장은?": data['신장'].unique().tolist(),
+    "당신이 선호하는 신장은?": data['height'].unique().tolist(),
     "어떤 취미를 가진 정령을 좋아하시나요?": data['취미'].unique().tolist(),
     "어떤 특기를 가진 정령을 선호하시나요?": data['특기'].unique().tolist(),
     "정령이 좋아하는 것 중 당신의 취향과 맞는 것은?": data['좋아하는 것'].unique().tolist(),
