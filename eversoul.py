@@ -32,7 +32,7 @@ st.title("당신의 최애 정령 찾기")
 
 # 질문 및 선택지 설정
 questions = {
-    "당신이 선호하는 신장은?": data['height'].unique().tolist(),
+    "당신이 선호하는 신장은?": data['신장'].unique().tolist(),
     "어떤 취미를 가진 정령을 좋아하시나요?": data['취미'].unique().tolist(),
     "어떤 특기를 가진 정령을 선호하시나요?": data['특기'].unique().tolist(),
     "정령이 좋아하는 것 중 당신의 취향과 맞는 것은?": data['좋아하는 것'].unique().tolist(),
@@ -59,7 +59,7 @@ if st.button("결과 보기"):
     for question, response in responses.items():
         for spirit in data['name']:
             if question == "당신이 선호하는 신장은?":
-                if response == data.loc[data['name'] == spirit, 'height'].values[0]:
+                if response == data.loc[data['name'] == spirit, '신장'].values[0]:
                     scores[spirit] += 1
             elif question == "어떤 취미를 가진 정령을 좋아하시나요?":
                 if response == data.loc[data['name'] == spirit, '취미'].values[0]:
@@ -104,7 +104,7 @@ if st.button("결과 보기"):
         with col2:
             st.subheader(f"{rank}위: {spirit}")
             st.write(
-                f"소속: {data.loc[data['name'] == spirit, 'team'].values[0]}")
+                f"소속: {data.loc[data['name'] == spirit, '소속'].values[0]}")
             st.write(f"특기: {data.loc[data['name'] == spirit, '특기'].values[0]}")
             st.write(f"취미: {data.loc[data['name'] == spirit, '취미'].values[0]}")
 
