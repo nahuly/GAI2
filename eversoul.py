@@ -103,8 +103,9 @@ if st.button("결과 보기"):
 
         with col2:
             st.subheader(f"{rank}위: {spirit}")
-            st.write(f"소속: {data.loc['team', spirit]}")
-            st.write(f"특기: {data.loc['특기', spirit]}")
-            st.write(f"취미: {data.loc['취미', spirit]}")
+            st.write(
+                f"소속: {data.loc[data['name'] == spirit, 'team'].values[0]}")
+            st.write(f"특기: {data.loc[data['name'] == spirit, '특기'].values[0]}")
+            st.write(f"취미: {data.loc[data['name'] == spirit, '취미'].values[0]}")
 
         st.write("---")
