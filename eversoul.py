@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from PIL import Image
 
 # 데이터 로드
 
@@ -12,6 +13,15 @@ def load_data():
     spirits_data_cleaned.columns = spirits_data_cleaned.iloc[0]
     return spirits_data_cleaned.drop(spirits_data_cleaned.index[0])
     # return spirits_data
+
+# 이미지 로드 함수
+
+
+def load_spirit_image(spirit_name):
+    try:
+        return Image.open(f"{spirit_name}.png")
+    except FileNotFoundError:
+        return None
 
 
 data = load_data()
@@ -77,4 +87,24 @@ if st.button("결과 보기"):
         st.write(f"소속: {data.loc[data['name'] == spirit, 'team'].values[0]}")
         st.write(f"특기: {data.loc[data['name'] == spirit, '특기'].values[0]}")
         st.write(f"취미: {data.loc[data['name'] == spirit, '취미'].values[0]}")
+        st.write("---")
+
+    # 결과 표시
+    st.subheader("당신의 최애 정령 순위:")
+    for rank, (spirit, score) in enumerate(ranked_spirits[:3], 1):
+        col1, col2 = st.columns([1, 3])
+
+        with col1:
+            image = load_spirit_image(spirit)
+            if image:
+                st.image(image, caption=spirit, use_column_width=True)
+            else:
+                st.write("이미지 없음")
+
+        with col2:
+            st.subheader(f"{rank}위: {spirit}")
+            st.write(f"소속: {data.loc['team', spirit]}")
+            st.write(f"특기: {data.loc['특기', spirit]}")
+            st.write(f"취미: {data.loc['취미', spirit]}")
+
         st.write("---")
