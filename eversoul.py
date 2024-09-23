@@ -7,7 +7,7 @@ from PIL import Image
 
 @st.cache_data
 def load_data():
-    file_path = 'ever1.csv'
+    file_path = 'ever2.csv'
     spirits_data = pd.read_csv(file_path)
     spirits_data_cleaned = spirits_data.dropna().T
     spirits_data_cleaned.columns = spirits_data_cleaned.iloc[0]
