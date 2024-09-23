@@ -1,5 +1,5 @@
 import streamlit as st
-from eversoul import data
+from main import data
 
 
 def show_results():
