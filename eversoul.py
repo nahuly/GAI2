@@ -15,6 +15,7 @@ def load_data():
 
 
 data = load_data()
+st.write(data)
 
 # 웹사이트 제목
 st.title("당신의 최애 정령 찾기")
