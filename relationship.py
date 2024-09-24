@@ -11,7 +11,7 @@ uploaded_file = st.file_uploader("Upload a text file", type="txt")
 
 if uploaded_file is not None:
     # 파일 읽기
-    stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
+    stringio = StringIO(uploaded_file.read().decode("utf-8"))
     story_text = stringio.read()
 
     # 관계도 생성 (예시로 간단한 관계 설정)
