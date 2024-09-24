@@ -3,21 +3,21 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from io import StringIO
 
-# Streamlit 앱 설정
+# Streamlit app setup
 st.title('Character Relationship Diagram Generator')
 
-# 파일 업로드
+# File upload
 uploaded_file = st.file_uploader("Upload a text file", type="txt")
 
 if uploaded_file is not None:
-    # 파일 읽기
+    # Read the uploaded file
     stringio = StringIO(uploaded_file.read().decode("utf-8"))
     story_text = stringio.read()
 
-    # 관계도 생성 (예시로 간단한 관계 설정)
+    # Create a relationship graph (example relationships)
     G = nx.Graph()
 
-    # 예시 인물 및 관계 추가
+    # Example characters and relationships
     G.add_edge("Henry Jekyll", "Edward Hyde", relationship="같은 인물")
     G.add_edge("Henry Jekyll", "John Utterson", relationship="친구")
     G.add_edge("Henry Jekyll", "Dr. Hastie Lanyon", relationship="동료")
@@ -25,16 +25,19 @@ if uploaded_file is not None:
     G.add_edge("Emma Carew", "Danvers Carew", relationship="부녀")
     G.add_edge("Edward Hyde", "Lucy", relationship="폭력적 관계")
 
-    # 그래프 그리기
+    # Plot the graph
     pos = nx.spring_layout(G)
     plt.figure(figsize=(8, 6))
 
     nx.draw(G, pos, with_labels=True, node_color='lightblue',
             font_weight='bold', node_size=3000)
 
-    # 관계 라벨 추가
+    # Add relationship labels to the edges
     edge_labels = nx.get_edge_attributes(G, 'relationship')
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
 
-    # Streamlit에 그래프 표시
-    st.pyplot(plt)
+    # Display the graph in Streamlit
+    st.pyplot(plt.gcf())  # Use plt.gcf() to get the current figure
+
+    # Close the plot after displaying
+    plt.clf()
