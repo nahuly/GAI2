@@ -9,6 +9,8 @@ st.title('Character Relationship Diagram Generator')
 # File upload
 uploaded_file = st.file_uploader("Upload a text file", type="txt")
 
+st.write(uploaded_file)
+
 # if uploaded_file is not None:
 #     # Read the uploaded file
 #     stringio = StringIO(uploaded_file.read().decode("utf-8"))
