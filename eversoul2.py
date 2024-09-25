@@ -50,54 +50,66 @@ dislike_categories = {
     "범죄/악행": ["범죄", "악인", "다혈질"]
 }
 
-# 설문조사 항목
-st.subheader("당신의 선호를 선택하세요:")
 
-# 각 범주에서 사용자의 선택을 받기
-hobby_choice = st.multiselect(
-    "좋아하는 취미를 선택하세요 (여러 개 선택 가능):", list(hobby_categories.keys()))
-skill_choice = st.multiselect(
-    "뛰어난 특기를 선택하세요 (여러 개 선택 가능):", list(skill_categories.keys()))
-like_choice = st.multiselect(
-    "좋아하는 것을 선택하세요 (여러 개 선택 가능):", list(like_categories.keys()))
-dislike_choice = st.multiselect(
-    "싫어하는 것을 선택하세요 (여러 개 선택 가능):", list(dislike_categories.keys()))
+# 세션 상태 초기화
+if 'step' not in st.session_state:
+    st.session_state.step = 0
 
-# 결과 보기 버튼
-if st.button("결과 보기"):
-    # 점수 계산
+if 'choices' not in st.session_state:
+    st.session_state.choices = {}
+
+# Streamlit 앱 설정
+st.title('Soulmate 정령 찾기')
+
+# 각 단계별 질문 함수
+
+
+def ask_question(question, options, key):
+    choice = st.selectbox(question, options)
+    if st.button("다음", key=f"next_{key}"):
+        st.session_state.choices[key] = choice
+        st.session_state.step += 1
+        st.experimental_rerun()
+
+# 결과 표시 함수
+
+
+def show_results():
+    # 점수 계산 로직 (기존 코드와 동일)
     df['점수'] = 0
 
-    # 선택된 범주에 속하는 취미와 같은 정령들에게 점수 부여
-    for category in hobby_choice:
-        for hobby in hobby_categories[category]:
-            df.loc[df['취미'].str.contains(hobby), '점수'] += 1
+    for hobby in hobby_categories[st.session_state.choices['hobby']]:
+        df.loc[df['취미'].str.contains(hobby), '점수'] += 1
 
-    # 선택된 범주에 속하는 특기와 같은 정령들에게 점수 부여
-    for category in skill_choice:
-        for skill in skill_categories[category]:
-            df.loc[df['특기'].str.contains(skill), '점수'] += 1
+    for skill in skill_categories[st.session_state.choices['skill']]:
+        df.loc[df['특기'].str.contains(skill), '점수'] += 1
 
-    # 선택된 범주에 속하는 좋아하는 것과 같은 정령들에게 점수 부여
-    for category in like_choice:
-        for like in like_categories[category]:
-            df.loc[df['좋아하는 것'].str.contains(like), '점수'] += 1
+    for like in like_categories[st.session_state.choices['like']]:
+        df.loc[df['좋아하는 것'].str.contains(like), '점수'] += 1
 
-    # 선택된 범주에 속하는 싫어하는 것과 다른 정령들에게 점수 부여
-    for category in dislike_choice:
-        for dislike in dislike_categories[category]:
-            df.loc[df['싫어하는 것'].str.contains(dislike) == False, '점수'] += 1
+    for dislike in dislike_categories[st.session_state.choices['dislike']]:
+        df.loc[df['싫어하는 것'].str.contains(dislike) == False, '점수'] += 1
 
-    # 점수에 따라 상위 3명의 정령 출력
     top3 = df.sort_values(by='점수', ascending=False).head(3)
 
     st.subheader("당신과 잘 맞는 상위 3명의 소울메이트 정령:")
-
     for i, row in top3.iterrows():
         st.write(f"{i+1}위: {row['이름']} (점수: {row['점수']})")
-        st.write(f"타입: {row['타입']}")
-        st.write(f"취미: {row['취미']}")
-        st.write(f"특기: {row['특기']}")
-        st.write(f"좋아하는 것: {row['좋아하는 것']}")
-        st.write(f"싫어하는 것: {row['싫어하는 것']}")
-        st.write("---")
+
+
+# 단계별 질문 표시
+if st.session_state.step == 0:
+    ask_question("가장 좋아하는 취미를 선택하세요:", list(hobby_categories.keys()), 'hobby')
+elif st.session_state.step == 1:
+    ask_question("가장 뛰어난 특기를 선택하세요:", list(skill_categories.keys()), 'skill')
+elif st.session_state.step == 2:
+    ask_question("가장 좋아하는 것을 선택하세요:", list(like_categories.keys()), 'like')
+elif st.session_state.step == 3:
+    ask_question("가장 싫어하는 것을 선택하세요:", list(
+        dislike_categories.keys()), 'dislike')
+elif st.session_state.step == 4:
+    show_results()
+    if st.button("처음부터 다시하기"):
+        st.session_state.step = 0
+        st.session_state.choices = {}
+        st.experimental_rerun()
