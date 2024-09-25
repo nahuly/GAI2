@@ -156,7 +156,7 @@ def show_results():
 
 # 단계별 질문 표시
 if st.session_state.step == 0:
-    ask_question("당신이 좋아하는 타입은?:", list(hobby_categories.keys()), 'type')
+    ask_question("당신이 좋아하는 타입은?:", list(type_categories.keys()), 'type')
 elif st.session_state.step == 1:
     ask_question("가장 좋아하는 취미를 선택하세요:", list(hobby_categories.keys()), 'hobby')
 elif st.session_state.step == 2:
