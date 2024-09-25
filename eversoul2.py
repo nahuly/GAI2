@@ -118,7 +118,7 @@ def show_results():
                 st.write("이미지 없음")
 
         with col2:
-            st.write(f"{i}위: {row['이름']} (점수: {row['점수']})")
+            st.write(f"{i}위: {row['이름']}")
             st.write(f"타입: {row['타입']}")
             st.write(f"취미: {row['취미']}")
             st.write(f"특기: {row['특기']}")
