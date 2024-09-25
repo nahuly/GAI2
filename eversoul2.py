@@ -231,13 +231,16 @@ elif st.session_state.step == 1:
     # 이미지 로드 (이미지 파일의 경로를 적절히 수정하세요)
     image1 = Image.open("eversoul_image/human_animal.png")
     image2 = Image.open("eversoul_image/fairy_death.png")
+    image3 = Image.open("eversoul_image/angel_devil.png")
 
     col1, col2, col3 = st.columns([1, 5, 1])
 
-    with col2:
+    with col1:
         st.image(image1, use_column_width=True)
-    with col3:
+    with col2:
         st.image(image2, use_column_width=True)
+    with col3:
+        st.image(image3, use_column_width=True)
 
     ask_question("당신이 좋아하는 타입은?:", list(type_categories.keys()), 'type')
 elif st.session_state.step == 2:
