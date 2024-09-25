@@ -229,6 +229,7 @@ elif st.session_state.step == 1:
 
     with col2:
         st.image(image, use_column_width=True)
+        st.image(image, use_column_width=True)
         st.markdown(
             '<p class="subtitle">당신의 운명적인 소울메이트 정령<br>지금 바로 찾아보세요!</p>', unsafe_allow_html=True)
 
