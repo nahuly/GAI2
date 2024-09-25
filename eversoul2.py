@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from PIL import Image
 
 # 데이터 로드
 data = {
@@ -71,9 +72,16 @@ def ask_question(question, options, key):
         st.session_state.step += 1
         st.rerun()
 
+
+# 이미지 로드 함수
+def load_spirit_image(spirit_name):
+    try:
+        return Image.open(f"{spirit_name}.png")
+    except FileNotFoundError:
+        return None
+
+
 # 결과 표시 함수
-
-
 def show_results():
     # 점수 계산 로직 (기존 코드와 동일)
     df['점수'] = 0
@@ -96,8 +104,28 @@ def show_results():
     st.write(top3)
 
     st.subheader("당신과 잘 맞는 상위 3명의 소울메이트 정령:")
+    # for i, row in top3.iterrows():
+    #     st.write(f"{i}위: {row['이름']} (점수: {row['점수']})")
     for i, row in top3.iterrows():
-        st.write(f"{i+1}위: {row['이름']} (점수: {row['점수']})")
+        col1, col2 = st.columns([3, 2])  # 3:2 비율로 컬럼 분할
+        spirit = row['이름']
+
+        with col1:
+            image = load_spirit_image(spirit)
+            if image:
+                st.image(image, caption=spirit, use_column_width=True)
+            else:
+                st.write("이미지 없음")
+
+    with col2:
+        st.write(f"{i}위: {row['이름']} (점수: {row['점수']})")
+        st.write(f"타입: {row['타입']}")
+        st.write(f"취미: {row['취미']}")
+        st.write(f"특기: {row['특기']}")
+        st.write(f"좋아하는 것: {row['좋아하는 것']}")
+        st.write(f"싫어하는 것: {row['싫어하는 것']}")
+
+    st.write("---")
 
 
 # 단계별 질문 표시
