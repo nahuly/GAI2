@@ -61,7 +61,7 @@ dislike_categories = {
 }
 
 # 페이지 설정 (항상 스크립트의 맨 위에 위치해야 함)
-st.set_page_config(layout="wide", page_title="Soulmate 정령 찾기")
+# st.set_page_config(layout="wide", page_title="Soulmate 정령 찾기")
 
 
 # 세션 상태 초기화
