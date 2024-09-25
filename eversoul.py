@@ -74,7 +74,7 @@ if st.button("결과 보기"):
                 if response.lower() == data.loc[data['name'] == spirit, '캐릭터 색상'].values[0].lower():
                     scores[spirit] += 1
 
-    # st.write(scores)
+    st.write(scores)
 
     # 점수에 따라 정령 정렬
     ranked_spirits = sorted(scores.items(), key=lambda x: x[1], reverse=True)
