@@ -93,12 +93,36 @@ if 'choices' not in st.session_state:
 
 
 # 각 단계별 질문 함수
+
+st.markdown("""
+<style>
+    .question-text {
+        font-size: 36px;
+        font-weight: bold;
+        color: #4A90E2;
+        text-align: center;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #E6F2FF;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
 def ask_question(question, options, key):
-    choice = st.radio(question, options)
-    if st.button("다음", key=f"next_{key}"):
-        st.session_state.choices[key] = choice
-        st.session_state.step += 1
-        st.rerun()
+    st.markdown(
+        f'<div class="question-text">{question}</div>', unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+
+    with col2:
+        choice = st.radio(question, options)
+        if st.button("다음", key=f"next_{key}"):
+            st.session_state.choices[key] = choice
+            st.session_state.step += 1
+            st.rerun()
 
 
 # 이미지 로드 함수
@@ -157,24 +181,6 @@ def show_results():
             st.markdown(f"**싫어하는 것:** {row['싫어하는 것']}")
 
         st.write("---")
-
-
-# # 단계별 질문 표시
-# if st.session_state.step == 0:
-#     ask_question("가장 좋아하는 취미를 선택하세요:", list(hobby_categories.keys()), 'hobby')
-# elif st.session_state.step == 1:
-#     ask_question("가장 뛰어난 특기를 선택하세요:", list(skill_categories.keys()), 'skill')
-# elif st.session_state.step == 2:
-#     ask_question("가장 좋아하는 것을 선택하세요:", list(like_categories.keys()), 'like')
-# elif st.session_state.step == 3:
-#     ask_question("가장 싫어하는 것을 선택하세요:", list(
-#         dislike_categories.keys()), 'dislike')
-# elif st.session_state.step == 4:
-#     show_results()
-#     if st.button("처음부터 다시하기"):
-#         st.session_state.step = 0
-#         st.session_state.choices = {}
-#         st.rerun()
 
 
 # CSS 스타일 정의
