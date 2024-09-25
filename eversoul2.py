@@ -20,7 +20,7 @@ st.title('Soulmate 정령 찾기')
 
 
 # 페이지 설정
-st.set_page_config(layout="wide", page_title="Soulmate 정령 찾기")
+# st.set_page_config(layout="wide", page_title="Soulmate 정령 찾기")
 
 
 # CSS 스타일 정의
