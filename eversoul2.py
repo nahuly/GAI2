@@ -19,6 +19,15 @@ df = pd.DataFrame(data)
 st.title('Soulmate 정령 찾기')
 
 # 취미, 특기, 좋아하는 것, 싫어하는 것을 5가지 범주로 분류
+type_categories = {
+    "인간형": ["인간형"],
+    "야수형": ["야수형"],
+    "요정형": ["요정형"],
+    "불사형": ["불사형"],
+    "천사형": ["천사형"],
+    "악마형": ["악마형"]
+}
+
 hobby_categories = {
     "예술/창의적 활동": ["그림 그리기", "초상화 그리기", "패밀리어 상대 탐색", "작은 나사 수집"],
     "자연/야외 활동": ["별 보기", "원예, 검수집", "구름 빗어주기", "산책, 정원 손질"],
@@ -82,6 +91,9 @@ def show_results():
     # 점수 계산 로직 (기존 코드와 동일)
     df['점수'] = 0
 
+    for type in type_categories[st.session_state.choices['type']]:
+        df.loc[df['타입'].str.contains(type), '점수'] += 1
+
     for hobby in hobby_categories[st.session_state.choices['hobby']]:
         df.loc[df['취미'].str.contains(hobby), '점수'] += 1
 
@@ -124,17 +136,37 @@ def show_results():
         st.write("---")
 
 
+# # 단계별 질문 표시
+# if st.session_state.step == 0:
+#     ask_question("가장 좋아하는 취미를 선택하세요:", list(hobby_categories.keys()), 'hobby')
+# elif st.session_state.step == 1:
+#     ask_question("가장 뛰어난 특기를 선택하세요:", list(skill_categories.keys()), 'skill')
+# elif st.session_state.step == 2:
+#     ask_question("가장 좋아하는 것을 선택하세요:", list(like_categories.keys()), 'like')
+# elif st.session_state.step == 3:
+#     ask_question("가장 싫어하는 것을 선택하세요:", list(
+#         dislike_categories.keys()), 'dislike')
+# elif st.session_state.step == 4:
+#     show_results()
+#     if st.button("처음부터 다시하기"):
+#         st.session_state.step = 0
+#         st.session_state.choices = {}
+#         st.rerun()
+
+
 # 단계별 질문 표시
 if st.session_state.step == 0:
-    ask_question("가장 좋아하는 취미를 선택하세요:", list(hobby_categories.keys()), 'hobby')
+    ask_question("당신이 좋아하는 타입은?:", list(hobby_categories.keys()), 'hobby')
 elif st.session_state.step == 1:
-    ask_question("가장 뛰어난 특기를 선택하세요:", list(skill_categories.keys()), 'skill')
+    ask_question("가장 좋아하는 취미를 선택하세요:", list(hobby_categories.keys()), 'hobby')
 elif st.session_state.step == 2:
-    ask_question("가장 좋아하는 것을 선택하세요:", list(like_categories.keys()), 'like')
+    ask_question("가장 뛰어난 특기를 선택하세요:", list(skill_categories.keys()), 'skill')
 elif st.session_state.step == 3:
+    ask_question("가장 좋아하는 것을 선택하세요:", list(like_categories.keys()), 'like')
+elif st.session_state.step == 4:
     ask_question("가장 싫어하는 것을 선택하세요:", list(
         dislike_categories.keys()), 'dislike')
-elif st.session_state.step == 4:
+elif st.session_state.step == 5:
     show_results()
     if st.button("처음부터 다시하기"):
         st.session_state.step = 0
