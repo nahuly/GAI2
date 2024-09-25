@@ -117,15 +117,15 @@ def show_results():
             else:
                 st.write("이미지 없음")
 
-    with col2:
-        st.write(f"{i}위: {row['이름']} (점수: {row['점수']})")
-        st.write(f"타입: {row['타입']}")
-        st.write(f"취미: {row['취미']}")
-        st.write(f"특기: {row['특기']}")
-        st.write(f"좋아하는 것: {row['좋아하는 것']}")
-        st.write(f"싫어하는 것: {row['싫어하는 것']}")
+        with col2:
+            st.write(f"{i}위: {row['이름']} (점수: {row['점수']})")
+            st.write(f"타입: {row['타입']}")
+            st.write(f"취미: {row['취미']}")
+            st.write(f"특기: {row['특기']}")
+            st.write(f"좋아하는 것: {row['좋아하는 것']}")
+            st.write(f"싫어하는 것: {row['싫어하는 것']}")
 
-    st.write("---")
+        st.write("---")
 
 
 # 단계별 질문 표시
