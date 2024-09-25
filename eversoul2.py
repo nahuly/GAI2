@@ -69,7 +69,7 @@ def ask_question(question, options, key):
     if st.button("다음", key=f"next_{key}"):
         st.session_state.choices[key] = choice
         st.session_state.step += 1
-        st.experimental_rerun()
+        st.rerun()
 
 # 결과 표시 함수
 
@@ -112,4 +112,4 @@ elif st.session_state.step == 4:
     if st.button("처음부터 다시하기"):
         st.session_state.step = 0
         st.session_state.choices = {}
-        st.experimental_rerun()
+        st.rerun()
