@@ -91,6 +91,7 @@ def show_results():
         df.loc[df['싫어하는 것'].str.contains(dislike) == False, '점수'] += 1
 
     top3 = df.sort_values(by='점수', ascending=False).head(3)
+    st.write(top3)
 
     st.subheader("당신과 잘 맞는 상위 3명의 소울메이트 정령:")
     for i, row in top3.iterrows():
