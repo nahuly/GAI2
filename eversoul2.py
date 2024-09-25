@@ -249,7 +249,7 @@ elif st.session_state.step == 2:
 
     col1, col2, col3 = st.columns([1, 5, 1])
 
-    with col1:
+    with col2:
         st.image(image1, use_column_width=True)
 
     ask_question("가장 좋아하는 취미를 선택하세요:", list(hobby_categories.keys()), 'hobby')
