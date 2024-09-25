@@ -255,7 +255,7 @@ elif st.session_state.step == 2:
     ask_question("가장 좋아하는 취미를 선택하세요:", list(hobby_categories.keys()), 'hobby')
 elif st.session_state.step == 3:
     # 이미지 로드 (이미지 파일의 경로를 적절히 수정하세요)
-    image1 = Image.open("eversoul_image/specialty.jpg")
+    image1 = Image.open("eversoul_image/specialty.png")
 
     col1, col2, col3 = st.columns([1, 5, 1])
 
@@ -264,7 +264,7 @@ elif st.session_state.step == 3:
     ask_question("가장 뛰어난 특기를 선택하세요:", list(skill_categories.keys()), 'skill')
 elif st.session_state.step == 4:
     # 이미지 로드 (이미지 파일의 경로를 적절히 수정하세요)
-    image1 = Image.open("eversoul_image/like.jpg")
+    image1 = Image.open("eversoul_image/like.png")
 
     col1, col2, col3 = st.columns([1, 5, 1])
 
