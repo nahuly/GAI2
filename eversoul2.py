@@ -59,12 +59,8 @@ if 'step' not in st.session_state:
 if 'choices' not in st.session_state:
     st.session_state.choices = {}
 
-# Streamlit 앱 설정
-st.title('Soulmate 정령 찾기')
 
 # 각 단계별 질문 함수
-
-
 def ask_question(question, options, key):
     choice = st.selectbox(question, options)
     if st.button("다음", key=f"next_{key}"):
@@ -101,7 +97,7 @@ def show_results():
     top3 = df.sort_values(by='점수', ascending=False).head(
         3).reset_index(drop=True)
     top3.index = [1, 2, 3]
-    st.write(top3)
+    # st.write(top3)
 
     st.subheader("당신과 잘 맞는 상위 3명의 소울메이트 정령:")
     # for i, row in top3.iterrows():
