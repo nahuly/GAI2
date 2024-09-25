@@ -126,12 +126,12 @@ def show_results():
                 st.write("이미지 없음")
 
         with col2:
-            st.write(f"{i}위: {row['이름']}")
-            st.write(f"타입: {row['타입']}")
-            st.write(f"취미: {row['취미']}")
-            st.write(f"특기: {row['특기']}")
-            st.write(f"좋아하는 것: {row['좋아하는 것']}")
-            st.write(f"싫어하는 것: {row['싫어하는 것']}")
+            st.markdown(f"**{i}위: {row['이름']}**")
+            st.markdown(f"**타입:** {row['타입']}")
+            st.markdown(f"**취미:** {row['취미']}")
+            st.markdown(f"**특기:** {row['특기']}")
+            st.markdown(f"**좋아하는 것:** {row['좋아하는 것']}")
+            st.markdown(f"**싫어하는 것:** {row['싫어하는 것']}")
 
         st.write("---")
 
