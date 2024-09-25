@@ -222,6 +222,9 @@ if st.session_state.step == 0:
             st.session_state.step += 1
             st.rerun()
 elif st.session_state.step == 1:
+    # 이미지 로드 (이미지 파일의 경로를 적절히 수정하세요)
+    image = Image.open("eversoul_image/ever_title.png")
+
     ask_question("당신이 좋아하는 타입은?:", list(type_categories.keys()), 'type')
 elif st.session_state.step == 2:
     ask_question("가장 좋아하는 취미를 선택하세요:", list(hobby_categories.keys()), 'hobby')
