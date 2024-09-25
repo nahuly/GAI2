@@ -181,7 +181,7 @@ def show_results():
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
-    
+
     .title {
         font-family: 'Noto Sans KR', sans-serif;
         font-size: 60px !important;
@@ -224,6 +224,13 @@ if st.session_state.step == 0:
 elif st.session_state.step == 1:
     # 이미지 로드 (이미지 파일의 경로를 적절히 수정하세요)
     image = Image.open("eversoul_image/ever_title.png")
+
+    col1, col2, col3 = st.columns([1, 5, 1])
+
+    with col2:
+        st.image(image, use_column_width=True)
+        st.markdown(
+            '<p class="subtitle">당신의 운명적인 소울메이트 정령<br>지금 바로 찾아보세요!</p>', unsafe_allow_html=True)
 
     ask_question("당신이 좋아하는 타입은?:", list(type_categories.keys()), 'type')
 elif st.session_state.step == 2:
