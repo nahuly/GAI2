@@ -156,17 +156,19 @@ def show_results():
 
 # 단계별 질문 표시
 if st.session_state.step == 0:
-    ask_question("당신이 좋아하는 타입은?:", list(type_categories.keys()), 'type')
+    st.set_page_config(layout="wide", page_title="Soulmate 정령 찾기")
 elif st.session_state.step == 1:
-    ask_question("가장 좋아하는 취미를 선택하세요:", list(hobby_categories.keys()), 'hobby')
+    ask_question("당신이 좋아하는 타입은?:", list(type_categories.keys()), 'type')
 elif st.session_state.step == 2:
-    ask_question("가장 뛰어난 특기를 선택하세요:", list(skill_categories.keys()), 'skill')
+    ask_question("가장 좋아하는 취미를 선택하세요:", list(hobby_categories.keys()), 'hobby')
 elif st.session_state.step == 3:
-    ask_question("가장 좋아하는 것을 선택하세요:", list(like_categories.keys()), 'like')
+    ask_question("가장 뛰어난 특기를 선택하세요:", list(skill_categories.keys()), 'skill')
 elif st.session_state.step == 4:
+    ask_question("가장 좋아하는 것을 선택하세요:", list(like_categories.keys()), 'like')
+elif st.session_state.step == 5:
     ask_question("가장 싫어하는 것을 선택하세요:", list(
         dislike_categories.keys()), 'dislike')
-elif st.session_state.step == 5:
+elif st.session_state.step == 6:
     show_results()
     if st.button("처음부터 다시하기"):
         st.session_state.step = 0
