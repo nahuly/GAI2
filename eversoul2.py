@@ -71,7 +71,7 @@ if 'choices' not in st.session_state:
 
 # 각 단계별 질문 함수
 def ask_question(question, options, key):
-    choice = st.selectbox(question, options)
+    choice = st.multiselect(question, options)
     if st.button("다음", key=f"next_{key}"):
         st.session_state.choices[key] = choice
         st.session_state.step += 1
