@@ -76,7 +76,7 @@ def ask_question(question, options, key):
 # 이미지 로드 함수
 def load_spirit_image(spirit_name):
     try:
-        return Image.open(f"{spirit_name}.png")
+        return Image.open(f"eversoul_image/{spirit_name}.png")
     except FileNotFoundError:
         return None
 
