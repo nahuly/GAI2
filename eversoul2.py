@@ -160,20 +160,21 @@ def show_results():
 # 단계별 질문 표시
 if st.session_state.step == 0:
     # 이미지 로드 (이미지 파일의 경로를 적절히 수정하세요)
-    image = Image.open("ever.png")
+    image = Image.open("eversoul_image/ever_title.png")
 
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
         st.image(image, use_column_width=True)
-        st.markdown('<p class="big-font">Soulmate 정령 찾기</p>',
-                    unsafe_allow_html=True)
-        st.markdown('<p class="subtitle">당신의 소울메이트 정령을 찾아보세요!</p>',
-                    unsafe_allow_html=True)
+        st.markdown(
+            '<p class="subtitle">당신의 운명적인 소울메이트 정령을<br>지금 바로 찾아보세요!</p>', unsafe_allow_html=True)
 
-    if st.button("시작하기"):
-        st.session_state.step += 1
-        st.rerun()
+    # 중앙 정렬을 위한 컬럼 사용
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        if st.button("✨ 시작하기 ✨", key="start_button"):
+            st.session_state.step += 1
+            st.rerun()
 elif st.session_state.step == 1:
     ask_question("당신이 좋아하는 타입은?:", list(type_categories.keys()), 'type')
 elif st.session_state.step == 2:
