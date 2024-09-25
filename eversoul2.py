@@ -90,7 +90,9 @@ def show_results():
     for dislike in dislike_categories[st.session_state.choices['dislike']]:
         df.loc[df['싫어하는 것'].str.contains(dislike) == False, '점수'] += 1
 
-    top3 = df.sort_values(by='점수', ascending=False).head(3)
+    top3 = df.sort_values(by='점수', ascending=False).head(
+        3).reset_index(drop=True)
+    top3.index = [1, 2, 3]
     st.write(top3)
 
     st.subheader("당신과 잘 맞는 상위 3명의 소울메이트 정령:")
