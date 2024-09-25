@@ -60,6 +60,9 @@ dislike_categories = {
     "범죄/악행": ["범죄", "악인", "다혈질"]
 }
 
+# 페이지 설정 (항상 스크립트의 맨 위에 위치해야 함)
+st.set_page_config(layout="wide", page_title="Soulmate 정령 찾기")
+
 
 # 세션 상태 초기화
 if 'step' not in st.session_state:
@@ -156,7 +159,9 @@ def show_results():
 
 # 단계별 질문 표시
 if st.session_state.step == 0:
-    st.set_page_config(layout="wide", page_title="Soulmate 정령 찾기")
+    if st.button("시작하기"):
+        st.session_state.step += 1
+        st.rerun()
 elif st.session_state.step == 1:
     ask_question("당신이 좋아하는 타입은?:", list(type_categories.keys()), 'type')
 elif st.session_state.step == 2:
