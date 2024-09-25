@@ -18,6 +18,26 @@ df = pd.DataFrame(data)
 # Streamlit 앱 설정
 st.title('Soulmate 정령 찾기')
 
+
+# 페이지 설정
+st.set_page_config(layout="wide", page_title="Soulmate 정령 찾기")
+
+
+# CSS 스타일 정의
+st.markdown("""
+    <style>
+    .title {
+        font-size: 60px !important;  /* 원하는 크기로 조정 */
+        color: #1E90FF;               /* 제목 색상 */
+        text-align: center;           /* 중앙 정렬 */
+        text-shadow: 2px 2px 4px #CCE5FF; /* 그림자 효과 */
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# 제목 표시
+st.markdown('<p class="title">Soulmate 정령 찾기</p>', unsafe_allow_html=True)
+
 # 취미, 특기, 좋아하는 것, 싫어하는 것을 5가지 범주로 분류
 type_categories = {
     "평범한 인간 형태의 정령이 좋다": ["인간형"],
