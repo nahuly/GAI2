@@ -16,7 +16,7 @@ data = {
 df = pd.DataFrame(data)
 
 # Streamlit 앱 설정
-st.title('Soulmate 정령 찾기')
+# st.title('Soulmate 정령 찾기')
 
 
 # 페이지 설정
@@ -182,12 +182,12 @@ if st.session_state.step == 0:
     # 이미지 로드 (이미지 파일의 경로를 적절히 수정하세요)
     image = Image.open("eversoul_image/ever_title.png")
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 5, 1])
 
     with col2:
         st.image(image, use_column_width=True)
         st.markdown(
-            '<p class="subtitle">당신의 운명적인 소울메이트 정령을<br>지금 바로 찾아보세요!</p>', unsafe_allow_html=True)
+            '<p class="subtitle">당신의 운명적인 소울메이트 정령을 지금 바로 찾아보세요!</p>', unsafe_allow_html=True)
 
     # 중앙 정렬을 위한 컬럼 사용
     col1, col2, col3 = st.columns([1, 1, 1])
