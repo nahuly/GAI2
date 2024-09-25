@@ -61,28 +61,31 @@ like_choice = st.selectbox("가장 좋아하는 것을 선택하세요:", list(l
 dislike_choice = st.selectbox(
     "가장 싫어하는 것을 선택하세요:", list(dislike_categories.keys()))
 
-# 점수 계산
-df['점수'] = 0
+# 결과 보기 버튼
+if st.button("결과 보기"):
+    # 점수 계산
+    df['점수'] = 0
 
-# 선택된 범주에 속하는 취미와 같은 정령들에게 1점 부여
-for hobby in hobby_categories[hobby_choice]:
-    df.loc[df['취미'] == hobby, '점수'] += 1
+    # 선택된 범주에 속하는 취미와 같은 정령들에게 1점 부여
+    for hobby in hobby_categories[hobby_choice]:
+        df.loc[df['취미'].str.contains(hobby), '점수'] += 1
 
-# 선택된 범주에 속하는 특기와 같은 정령들에게 1점 부여
-for skill in skill_categories[skill_choice]:
-    df.loc[df['특기'] == skill, '점수'] += 1
+    # 선택된 범주에 속하는 특기와 같은 정령들에게 1점 부여
+    for skill in skill_categories[skill_choice]:
+        df.loc[df['특기'].str.contains(skill), '점수'] += 1
 
-# 선택된 범주에 속하는 좋아하는 것과 같은 정령들에게 1점 부여
-for like in like_categories[like_choice]:
-    df.loc[df['좋아하는 것'] == like, '점수'] += 1
+    # 선택된 범주에 속하는 좋아하는 것과 같은 정령들에게 1점 부여
+    for like in like_categories[like_choice]:
+        df.loc[df['좋아하는 것'].str.contains(like), '점수'] += 1
 
-# 선택된 범주에 속하는 싫어하는 것과 다른 정령들에게 1점 부여
-for dislike in dislike_categories[dislike_choice]:
-    df.loc[df['싫어하는 것'] != dislike, '점수'] += 1
+    # 선택된 범주에 속하는 싫어하는 것과 다른 정령들에게 1점 부여
+    for dislike in dislike_categories[dislike_choice]:
+        df.loc[df['싫어하는 것'].str.contains(dislike) == False, '점수'] += 1
 
-# 점수에 따라 상위 3명의 정령 출력
-top3 = df.sort_values(by='점수', ascending=False).head(3)
+    # 점수에 따라 상위 3명의 정령 출력
+    top3 = df.sort_values(by='점수', ascending=False).head(3)
 
-st.subheader("당신과 잘 맞는 상위 3명의 소울메이트 정령:")
-for i, row in top3.iterrows():
-    st.write(f"{row['이름']} (점수: {row['점수']})")
+    st.subheader("당신과 잘 맞는 상위 3명의 소울메이트 정령:")
+
+    for i, row in top3.iterrows():
+        st.write(f"{i+1}위: {row['이름']} (점수: {row['점수']})")
