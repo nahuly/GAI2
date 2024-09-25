@@ -20,7 +20,7 @@ st.title('Soulmate 정령 찾기')
 
 # 취미, 특기, 좋아하는 것, 싫어하는 것을 5가지 범주로 분류
 type_categories = {
-    "평범한 이간 형태의 정령이 좋다": ["인간형"],
+    "평범한 인간 형태의 정령이 좋다": ["인간형"],
     "동물 귀와 꼬리가 포인트인 정령이 좋다": ["야수형"],
     "요정 특유의 귀가 포인트인 정령이 좋다": ["요정형"],
     "언데드 또는 기계 계열(전체적으로 창백)이 좋다": ["불사형"],
@@ -159,6 +159,18 @@ def show_results():
 
 # 단계별 질문 표시
 if st.session_state.step == 0:
+    # 이미지 로드 (이미지 파일의 경로를 적절히 수정하세요)
+    image = Image.open("ever.png")
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+
+    with col2:
+        st.image(image, use_column_width=True)
+        st.markdown('<p class="big-font">Soulmate 정령 찾기</p>',
+                    unsafe_allow_html=True)
+        st.markdown('<p class="subtitle">당신의 소울메이트 정령을 찾아보세요!</p>',
+                    unsafe_allow_html=True)
+
     if st.button("시작하기"):
         st.session_state.step += 1
         st.rerun()
