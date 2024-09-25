@@ -233,7 +233,7 @@ elif st.session_state.step == 1:
     image2 = Image.open("eversoul_image/fairy_death.png")
     image3 = Image.open("eversoul_image/angel_devil.png")
 
-    col1, col2, col3 = st.columns([3, 3, 3])
+    col1, col2, col3 = st.columns([5, 5, 5])
 
     with col1:
         st.image(image1, use_column_width=True)
