@@ -118,7 +118,7 @@ def ask_question(question, options, key):
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
-        choice = st.radio(options)
+        choice = st.radio("", options, key=f"radio_{key}")  # 빈 문자열을 라벨로 사용
         if st.button("다음", key=f"next_{key}"):
             st.session_state.choices[key] = choice
             st.session_state.step += 1
