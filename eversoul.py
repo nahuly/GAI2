@@ -25,7 +25,7 @@ def load_spirit_image(spirit_name):
 
 
 data = load_data()
-st.write(data)
+# st.write(data)
 
 # 웹사이트 제목
 st.title("당신의 최애 정령 찾기")
