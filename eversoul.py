@@ -74,7 +74,7 @@ if st.button("결과 보기"):
                 if response.lower() == data.loc[data['name'] == spirit, '캐릭터 색상'].values[0].lower():
                     scores[spirit] += 1
 
-    st.write(scores)
+    # st.write(scores)
 
     # 점수에 따라 정령 정렬
     ranked_spirits = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -94,12 +94,12 @@ if st.button("결과 보기"):
     for rank, (spirit, score) in enumerate(ranked_spirits[:3], 1):
         col1, col2 = st.columns([1, 3])
 
-        with col1:
-            image = load_spirit_image(spirit)
-            if image:
-                st.image(image, caption=spirit, use_column_width=True)
-            else:
-                st.write("이미지 없음")
+        # with col1:
+        #     image = load_spirit_image(spirit)
+        #     if image:
+        #         st.image(image, caption=spirit, use_column_width=True)
+        #     else:
+        #         st.write("이미지 없음")
 
         with col2:
             st.subheader(f"{rank}위: {spirit}")
