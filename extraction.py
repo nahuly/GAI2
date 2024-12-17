@@ -48,11 +48,8 @@ df = pd.read_csv('test.csv')
 # 'Date' 컬럼에서 월만 추출
 df['Month'] = df['Date'].str[5:7]
 
-print(df.head())
-# # 'Month'별로 'cnt' 합산
-# month_stats = df.groupby('Month').agg(
-#     cnt=('Month', 'size'),  # 행의 개수
-# )
+# 'Month'별로 'cnt' 합산
+month_stats = df.groupby('Month').size().reset_index(name='cnt')
 
-# # 결과를 Streamlit의 bar_chart로 시각화
-# st.bar_chart(month_stats.set_index('Month')['cnt'])
+# 결과를 Streamlit의 bar_chart로 시각화
+st.bar_chart(month_stats.set_index('Month')['cnt'])
