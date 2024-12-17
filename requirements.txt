@@ -4,3 +4,4 @@ scikit-image
 # tensorflow.python
 pygame
 matplotlib
+plotly
