@@ -7,10 +7,12 @@ import plotly.express as px
 # Write directly to the app
 st.title("추출 :balloon:")
 
+cnt = pd.read_csv('ever.csv')
+
 
 st.header("추출 개수")
-st.metric(label='총 추출 개수', value='222')
-st.metric(label='총 추출 개수', value='222', delta='-50%')
+st.metric(label='총 추출 개수', value=len(cnt))
+st.metric(label='총 추출 개수', value=len(cnt), delta='-50%')
 
 
 df = pd.DataFrame(
