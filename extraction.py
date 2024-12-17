@@ -22,3 +22,10 @@ id_stats = df.groupby('AgitID').agg(
 
 # 데이터프레임을 bar_chart로 시각화
 st.bar_chart(id_stats['cnt'])
+
+
+df_group = pd.read_csv('test_group.csv')
+merged_df = pd.merge(id_stats, df_group, on='AgitID', how='left')
+
+# 결과 확인
+st.bar_chart(merged_df.set_index('cell')['cnt'])
