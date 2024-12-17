@@ -1,42 +1,49 @@
+# Import python packages
 import streamlit as st
+from snowflake.snowpark.context import get_active_session
+import pandas as pd
+import plotly.express as px
 
-# Streamlit 인터페이스
-st.title("게임 유저 분석 도구")
 
-# 테이블 정보 표시
-with st.expander("참고: 테이블 정보 보기"):
-    st.write("### 테이블 A:")
-    st.write("""
-    - **변수**:
-        - 일 별 날짜
-        - id
-        - 레벨
-        - 마지막 접속날짜
-        - 서버
-        - 오늘 접속여부
-        - 일 별 날짜와 마지막 접속일의 차이(일 수)
-    - **설명**: 유저의 상태를 알 수 있는 기초 테이블
-    """)
-    st.write("### 테이블 B:")
-    st.write("""
-    - **변수**:
-        - 일 별 날짜
-        - id
-        - 구매 아이템
-        - 구매 가격
-    - **설명**: 유저가 구매한 아이템 정보를 알 수 있는 테이블
-    """)
+session = get_active_session()
 
-# 사용자 질문 입력
-user_question = st.text_input(
-    "질문을 입력하세요:", "2024-10-23에 접속한 유저 중 100만원 이상 쓴 유저는?")
 
-# 질문에 따른 응답 처리
-if st.button("분석 실행"):
-    if "2024-10-23에 접속한 유저 중 100만원 이상 쓴 유저는" in user_question:
-        st.success("분석 결과:")
-        st.write("2024-10-23에 접속한 유저 중 100만원 이상 쓴 유저는 다음과 같습니다:")
-        st.write("- 유저 ID: 12345")
-        st.write("- 유저 ID: 67890")
-    else:
-        st.warning("해당 질문은 현재 지원하지 않습니다.")
+# Write directly to the app
+st.title("추출 :balloon:")
+
+
+st.header("추출 개수")
+st.metric(label='총 추출 개수', value='222')
+st.metric(label='총 추출 개수', value='222', delta='-50%')
+
+
+df = pd.DataFrame(
+    {
+        "a": range(1, 3),  # 리스트로 값 전달
+        "b": range(1, 3),  # 리스트로 값 전달
+    }
+)
+
+
+# 데이터프레임을 bar_chart로 시각화
+# st.bar_chart(df, x = "a", y = "b")
+
+
+session = get_active_session()
+
+st.header("sql 숫자 데이터")
+st.text(220)
+
+# -----------------------------------------------------------
+
+st.header("sql 그래프")
+
+df = pd.DataFrame(
+    {
+        "a": [1],  # 리스트로 값 전달
+        "b": [2],  # 리스트로 값 전달
+    }
+)
+
+# 데이터프레임을 bar_chart로 시각화
+st.bar_chart(df)
