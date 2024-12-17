@@ -43,6 +43,8 @@ st.plotly_chart(fig)
 
 # -----------------------------------------------------------
 
+df = pd.read_csv('test.csv')
+
 # 'Date' 컬럼에서 월만 추출
 df['Month'] = df['Date'].str[5:7]
 
