@@ -39,4 +39,4 @@ df = pd.DataFrame(
 )
 
 # 데이터프레임을 bar_chart로 시각화
-st.bar_chart(df)
+st.bar_chart(df, x="a", y="b")
