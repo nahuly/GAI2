@@ -24,9 +24,6 @@ df = pd.DataFrame(
 # 데이터프레임을 bar_chart로 시각화
 # st.bar_chart(df, x = "a", y = "b")
 
-
-session = get_active_session()
-
 st.header("sql 숫자 데이터")
 st.text(220)
 
