@@ -22,10 +22,20 @@ id_stats = df.groupby('AgitID').agg(
 
 # 데이터프레임을 bar_chart로 시각화
 st.bar_chart(id_stats['cnt'])
-
+# -----------------------------------------------------------
 
 df_group = pd.read_csv('test_group.csv')
 merged_df = pd.merge(id_stats, df_group, on='AgitID', how='left')
 
 # 결과 확인
 st.bar_chart(merged_df.set_index('cell')['cnt'])
+
+# -----------------------------------------------------------
+# group별로 cnt 값 합산
+grouped_stats = merged_df.groupby('cell')['cnt'].sum().reset_index()
+# 원차트로 시각화
+fig = px.pie(grouped_stats, names='cell',
+             values='cnt', title='Group-wise Count')
+
+# Streamlit에서 그래프 표시
+st.plotly_chart(fig)
