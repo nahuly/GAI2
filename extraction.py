@@ -21,4 +21,4 @@ id_stats = df.groupby('AgitID').agg(
 )
 
 # 데이터프레임을 bar_chart로 시각화
-st.bar_chart(df, x="AgitID", y="cnt")
+st.bar_chart(id_stats['cnt'])
