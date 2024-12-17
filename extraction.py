@@ -46,5 +46,8 @@ st.plotly_chart(fig)
 # 'Date' 컬럼에서 월만 추출
 df['Month'] = df['Date'].str[5:7]
 
-# 결과 확인
-st.bar_chart(df.set_index('Month')['cnt'])
+# 'Month'별로 'cnt' 합산
+month_stats = df.groupby('Month')['cnt'].sum().reset_index()
+
+# 결과를 Streamlit의 bar_chart로 시각화
+st.bar_chart(month_stats.set_index('Month')['cnt'])
