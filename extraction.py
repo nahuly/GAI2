@@ -39,3 +39,12 @@ fig = px.pie(grouped_stats, names='cell',
 
 # Streamlit에서 그래프 표시
 st.plotly_chart(fig)
+
+
+# -----------------------------------------------------------
+
+# 'Date' 컬럼에서 월만 추출
+df['Month'] = df['Date'].str[5:7]
+
+# 결과 확인
+st.bar_chart(df.set_index('Month')['cnt'])
