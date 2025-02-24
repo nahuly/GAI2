@@ -1,10 +1,10 @@
-from sklearn.preprocessing import LabelEncoder
 import random
 import streamlit as st
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import LabelEncoder
 
-# SM 아티스트와 대표곡 데이터 (여기에 장르나 스타일도 추가 가능)
+# SM 아티스트와 대표곡 데이터 (장르, 템포, 분위기 포함)
 sm_artists = {
     "TVXQ": {"Mirotic": {"genre": "Pop", "tempo": "Fast", "mood": "Energetic"},
              "Catch Me": {"genre": "Pop", "tempo": "Fast", "mood": "Energetic"}},
@@ -39,27 +39,45 @@ cosine_sim = cosine_similarity(songs_encoded)
 # Streamlit UI
 st.title("SM 30주년 기념 AI 노래 추천 시스템")
 
-# 아티스트 선택
-artist_choice = st.selectbox(
-    "어떤 SM 아티스트의 노래를 추천받고 싶으세요?", list(sm_artists.keys()))
+# 사용자에게 여러 가지 질문 던지기
+genre_choice = st.selectbox(
+    "원하는 장르를 선택하세요:", ["Pop", "Dance", "R&B", "Hip-Hop", "Ballad"])
+tempo_choice = st.selectbox("원하는 템포를 선택하세요:", ["Fast", "Medium", "Slow"])
+mood_choice = st.selectbox(
+    "원하는 분위기를 선택하세요:", ["Energetic", "Fun", "Cool", "Sexy", "Romantic"])
 
 # 추천 버튼
 if st.button("AI 노래 추천 받기"):
-    song_list = list(sm_artists[artist_choice].keys())
+    filtered_songs = []
 
-    # 랜덤 추천 대신 AI 기반 추천
-    song_idx = random.randint(0, len(song_list) - 1)
-    selected_song = song_list[song_idx]
+    # 선택한 장르, 템포, 분위기에 맞는 곡을 필터링
+    for i, song in enumerate(songs):
+        if song[0] == genre_choice and song[1] == tempo_choice and song[2] == mood_choice:
+            filtered_songs.append(song_names[i])
 
-    st.write(f"추천 노래: {selected_song}")
-    st.write("AI 기반 추천입니다!")
+    if filtered_songs:
+        st.write(
+            f"추천 노래들 (장르: {genre_choice}, 템포: {tempo_choice}, 분위기: {mood_choice}):")
+        for song in filtered_songs:
+            st.write(song)
+    else:
+        st.write("선택하신 조건에 맞는 노래가 없습니다. 다른 조건을 선택해 보세요.")
 
-    # 유사한 노래 추천
-    idx = song_names.index(selected_song)
-    similar_songs = cosine_sim[idx]
+    # 유사한 노래 추천 (필터링된 노래 중에서)
+    if filtered_songs:
+        random_song = random.choice(filtered_songs)
+        st.write(f"선택된 노래: {random_song}")
 
-    # 유사한 노래 3개 추천
-    similar_idx = similar_songs.argsort()[-4:-1][::-1]  # 가장 유사한 3곡
-    st.write("비슷한 노래들:")
-    for idx in similar_idx:
-        st.write(song_names[idx])
+        idx = song_names.index(random_song)
+        similar_songs = cosine_sim[idx]
+
+        # 유사한 노래 3개 추천
+        similar_idx = similar_songs.argsort()[-4:-1][::-1]  # 가장 유사한 3곡
+        st.write("비슷한 노래들:")
+        for idx in similar_idx:
+            st.write(song_names[idx])
+
+    # 피드백 받기
+    feedback = st.radio("이 추천은 어땠나요?", ["좋아요", "별로에요", "보통이에요"])
+    if feedback:
+        st.write(f"감사합니다! 피드백: {feedback}")
