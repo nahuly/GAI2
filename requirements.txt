@@ -5,3 +5,4 @@ scikit-image
 pygame
 matplotlib
 plotly
+scikit-learn
