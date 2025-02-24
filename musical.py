@@ -1,33 +1,23 @@
-import streamlit as st
 import random
-import playsound
+import streamlit as st
 
-# 뮤지컬 데이터 (예시)
-musicals = {
-    "The Phantom of the Opera": {"genre": "Romance", "songs": "phantom_of_the_opera.mp3"},
-    "Les Misérables": {"genre": "Drama", "songs": "les_miserables.mp3"},
-    "Hamilton": {"genre": "History", "songs": "hamilton.mp3"},
+# SM 아티스트와 대표곡
+sm_artists = {
+    "TVXQ": ["Mirotic", "Catch Me", "Rising Sun"],
+    "SUPER JUNIOR": ["Sorry, Sorry", "Mr. Simple", "U"],
+    "EXO": ["Growl", "Call Me Baby", "Love Shot"],
+    "Red Velvet": ["Bad Boy", "Psycho", "Red Flavor"],
+    "NCT": ["Kick Back", "Cherry Bomb", "Make A Wish"],
 }
 
 # Streamlit UI
-st.title("뮤지컬 추천 시스템")
+st.title("SM 30주년 기념 노래 추천")
 
-# 설문조사: 장르 선택
-genre_preference = st.selectbox(
-    "어떤 장르의 뮤지컬을 원하시나요?", ["Romance", "Drama", "History"])
+# 아티스트 선택
+artist_choice = st.selectbox(
+    "어떤 SM 아티스트의 노래를 추천받고 싶으세요?", list(sm_artists.keys()))
 
 # 추천 버튼
-if st.button("뮤지컬 추천 받기"):
-    matching_musicals = [musical for musical, details in musicals.items(
-    ) if details["genre"].lower() == genre_preference.lower()]
-
-    if matching_musicals:
-        recommended = random.choice(matching_musicals)
-        st.write(f"추천 뮤지컬: {recommended}")
-        st.write("추천된 뮤지컬의 음악을 들려드릴게요!")
-
-        # 음악 재생
-        # 음악 파일 경로는 실제 경로로 설정해야 함
-        playsound.playsound(musicals[recommended]["songs"])
-    else:
-        st.write("선택하신 장르에 맞는 뮤지컬이 없습니다.")
+if st.button("노래 추천 받기"):
+    recommended_song = random.choice(sm_artists[artist_choice])
+    st.write(f"{artist_choice}의 추천 노래: {recommended_song}")
