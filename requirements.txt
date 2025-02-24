@@ -6,3 +6,4 @@ pygame
 matplotlib
 plotly
 scikit-learn
+magenta
