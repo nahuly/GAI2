@@ -8,3 +8,4 @@ plotly
 scikit-learn
 # magenta
 youtube-search-python
+goole-api-python-client

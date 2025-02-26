@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from youtubesearchpython import VideosSearch
+from googleapiclient.discovery import build
 
 # 뮤지컬 데이터 예제 (뮤지컬 제목, 키워드, 감정 분위기)
 musical_data = pd.DataFrame({
@@ -15,6 +15,10 @@ musical_data = pd.DataFrame({
         '마법, 판타지, 여성, 우정'
     ]
 })
+
+# YouTube Data API 클라이언트 설정
+api_key = 'AIzaSyBhWZeQJp-XcxafgU9q0BmECArbcjlQzuA'  # 여기에 본인의 API 키를 입력하세요.
+youtube = build('youtube', 'v3', developerKey=api_key)
 
 
 def recommend_musical(user_input):
@@ -34,8 +38,26 @@ def recommend_musical(user_input):
 
 def search_musical_song(musical_name):
     search_query = f"{musical_name} official soundtrack"
-    search = VideosSearch(search_query, limit=1)
-    return search.result()['result'][0]['link']
+
+    # YouTube Data API로 검색 요청
+    request = youtube.search().list(
+        part="snippet",
+        q=search_query,
+        type="video",
+        order="relevance",  # 검색 결과의 관련성 순서로 정렬
+        maxResults=1        # 1개의 결과만 가져오기
+    )
+
+    # 응답 처리
+    response = request.execute()
+
+    # 결과가 있으면 첫 번째 비디오 링크 반환
+    if 'items' in response and len(response['items']) > 0:
+        video_id = response['items'][0]['id']['videoId']
+        video_url = f"https://www.youtube.com/watch?v={video_id}"
+        return video_url
+    else:
+        return None
 
 
 # Streamlit UI 구성
@@ -51,4 +73,8 @@ if st.button("추천 받기"):
     song_link = search_musical_song(recommended_musical)
 
     st.success(f"🎭 추천 뮤지컬: {recommended_musical}")
-    st.markdown(f"[🎵 대표곡 듣기]({song_link})")
+
+    if song_link:
+        st.markdown(f"[🎵 대표곡 듣기]({song_link})")
+    else:
+        st.error("대표곡을 찾을 수 없습니다.")
