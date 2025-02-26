@@ -6,4 +6,5 @@ pygame
 matplotlib
 plotly
 scikit-learn
-magenta
+# magenta
+youtube-search-python
