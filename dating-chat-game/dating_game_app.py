@@ -66,15 +66,8 @@ if not st.session_state.game_started:
                 f"성별은 '{st.session_state.partner_gender}', "
                 f"나이대는 '{st.session_state.partner_age}'이다. "
                 "MBTI, 성별, 나이대에 맞는 **말투와 성격**을 반영해서 대답하라. "
-                "말투 규칙 예시: "
-                "- 10대 → 발랄하고 솔직한 말투 "
-                "- 20대 → 친근하고 편한 말투 "
-                "- 30대 → 성숙하고 차분한 말투 "
-                "- 40대 이상 → 점잖고 신중한 말투 "
-                "성별이 여성이라면 조금 더 부드럽고 친근한 말투, "
-                "남성이라면 조금 더 직설적이고 단정한 말투를 사용하라. "
-                "매 턴마다 플레이어에게 짧고 자연스러운 질문을 한 가지 던져라. "
-                "불필요한 긴 설명은 하지 말고, 반드시 질문으로 끝내라."
+                "첫 턴에서는 반드시 플레이어에게 짧고 자연스러운 질문을 한 가지 던져라. "
+                "불필요한 긴 설명은 하지 말고 반드시 질문으로 끝내라."
             )}
         ]
         st.session_state.turn = 1
@@ -107,7 +100,7 @@ if st.session_state.game_started:
         st.session_state.partner_mbti
     )
     if os.path.exists(expression_img):
-        st.image(expression_img, width=350, caption="상대방의 표정")
+        st.image(expression_img, width=350, caption="상대방의 표정")  # 크기 키움
     else:
         st.write("⚠️ 맞는 이미지가 없습니다. 이미지 파일명을 확인하세요.")
 
@@ -157,16 +150,34 @@ if st.session_state.game_started:
             # 턴 증가
             st.session_state.turn += 1
 
-            # 다음 질문 or 엔딩
+            # 다음 대답 or 엔딩
             if st.session_state.turn <= MAX_TURNS:
+                response_prompt = st.session_state.history.copy()
+
+                # 두 번째 턴 이후부터는 자연스럽게 반응 (가끔 질문 포함 가능)
+                if st.session_state.turn > 1:
+                    response_prompt.insert(0, {
+                        "role": "system",
+                        "content": (
+                            f"너는 소개팅에 나온 상대방이다. "
+                            f"MBTI는 '{st.session_state.partner_mbti}'이고, "
+                            f"성별은 '{st.session_state.partner_gender}', "
+                            f"나이대는 '{st.session_state.partner_age}'이다. "
+                            "플레이어의 대답에 공감하거나 반응하면서 "
+                            "MBTI/성별/나이대 특성을 반영한 자연스러운 대답을 하라. "
+                            "꼭 질문으로 끝낼 필요는 없지만, "
+                            "자연스럽게 이어질 수 있도록 가끔은 질문을 포함해도 된다."
+                        )
+                    })
+
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
-                    messages=st.session_state.history,
-                    temperature=0.7,
-                    max_tokens=100
+                    messages=response_prompt,
+                    temperature=0.8,
+                    max_tokens=150
                 )
-                question = response.choices[0].message.content
-                st.session_state.history.append({"role": "assistant", "content": question})
+                answer = response.choices[0].message.content
+                st.session_state.history.append({"role": "assistant", "content": answer})
             else:
                 if st.session_state.liking >= 70:
                     st.session_state.ending_message = "🎉 소개팅 대성공! 서로 연락을 이어가기로 했습니다 💕"
