@@ -16,6 +16,15 @@ def reset_game():
     st.session_state.ending_message = None
     st.session_state.partner_mbti = None
 
+# 호감도에 따른 표정 이미지 선택
+def get_expression_image(liking):
+    if liking >= 70:
+        return "images/happy.png"     # 행복한 표정
+    elif liking >= 40:
+        return "images/neutral.png"   # 무난한 표정
+    else:
+        return "images/sad.png"       # 실망한 표정
+
 # 세션 상태 초기화
 if "history" not in st.session_state:
     reset_game()
@@ -63,6 +72,10 @@ if st.session_state.game_started:
     st.write(f"턴: {st.session_state.turn}/{MAX_TURNS}")
     st.progress(st.session_state.liking / MAX_LIKING,
                 text=f"💖 호감도: {st.session_state.liking}/{MAX_LIKING}")
+
+    # 표정 이미지 표시
+    expression_img = get_expression_image(st.session_state.liking)
+    st.image(expression_img, width=200, caption="상대방의 표정")
 
     # 대화 표시
     for msg in st.session_state.history:
