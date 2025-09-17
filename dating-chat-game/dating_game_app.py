@@ -2,10 +2,14 @@ import os
 import streamlit as st
 from openai import OpenAI
 
+# OpenAI 클라이언트 초기화
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-MAX_TURNS = 5   # 턴을 5로 늘림
+MAX_TURNS = 5   # 턴 수
 MAX_LIKING = 100
+
+# 현재 app 파일 위치
+BASE_DIR = os.path.dirname(__file__)
 
 # 세션 초기화 함수
 def reset_game():
@@ -16,14 +20,14 @@ def reset_game():
     st.session_state.ending_message = None
     st.session_state.partner_mbti = None
 
-# 호감도에 따른 표정 이미지 선택
-def get_expression_image(liking):
+# 호감도에 따른 표정 이미지
+def get_expression_image(liking: int):
     if liking >= 70:
-        return "images/happy.png"     # 행복한 표정
+        return os.path.join(BASE_DIR, "images", "happy.png")
     elif liking >= 40:
-        return "images/neutral.png"   # 무난한 표정
+        return os.path.join(BASE_DIR, "images", "neutral.png")
     else:
-        return "images/sad.png"       # 실망한 표정
+        return os.path.join(BASE_DIR, "images", "sad.png")
 
 # 세션 상태 초기화
 if "history" not in st.session_state:
@@ -31,7 +35,7 @@ if "history" not in st.session_state:
 
 st.title("💔 MBTI 소개팅 Q&A 게임")
 
-# 1. MBTI 선택
+# 1. MBTI 선택 단계
 if not st.session_state.game_started:
     st.session_state.partner_mbti = st.selectbox(
         "상대방의 MBTI를 골라주세요:",
@@ -67,15 +71,20 @@ if not st.session_state.game_started:
         st.session_state.history.append({"role": "assistant", "content": question})
         st.rerun()
 
-# 2. 진행 단계
+# 2. 게임 진행 단계
 if st.session_state.game_started:
     st.write(f"턴: {st.session_state.turn}/{MAX_TURNS}")
-    st.progress(st.session_state.liking / MAX_LIKING,
-                text=f"💖 호감도: {st.session_state.liking}/{MAX_LIKING}")
+    st.progress(
+        st.session_state.liking / MAX_LIKING,
+        text=f"💖 호감도: {st.session_state.liking}/{MAX_LIKING}"
+    )
 
     # 표정 이미지 표시
     expression_img = get_expression_image(st.session_state.liking)
-    st.image(expression_img, width=200, caption="상대방의 표정")
+    if os.path.exists(expression_img):
+        st.image(expression_img, width=200, caption="상대방의 표정")
+    else:
+        st.write("⚠️ 표정 이미지를 불러올 수 없습니다. 이미지 경로를 확인하세요.")
 
     # 대화 표시
     for msg in st.session_state.history:
@@ -84,7 +93,7 @@ if st.session_state.game_started:
         elif msg["role"] == "user":
             st.markdown(f"**플레이어:** {msg['content']}")
 
-    # 답변 입력
+    # 플레이어 답변 입력
     if st.session_state.turn <= MAX_TURNS and not st.session_state.ending_message:
         player_answer = st.text_input("👉 당신의 대답:", key=f"turn_{st.session_state.turn}")
         if st.button("전송", key=f"send_{st.session_state.turn}"):
