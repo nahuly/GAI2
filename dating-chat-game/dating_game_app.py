@@ -19,6 +19,8 @@ def reset_game():
     st.session_state.game_started = False
     st.session_state.ending_message = None
     st.session_state.partner_mbti = None
+    st.session_state.partner_gender = None
+    st.session_state.partner_age = None
 
 # 호감도에 따른 표정 이미지
 def get_expression_image(liking: int):
@@ -35,7 +37,7 @@ if "history" not in st.session_state:
 
 st.title("💔 MBTI 소개팅 Q&A 게임")
 
-# 1. MBTI 선택 단계
+# 1. MBTI / 성별 / 나이대 선택 단계
 if not st.session_state.game_started:
     st.session_state.partner_mbti = st.selectbox(
         "상대방의 MBTI를 골라주세요:",
@@ -46,12 +48,25 @@ if not st.session_state.game_started:
             "ISTP", "ISFP", "ESTP", "ESFP"
         ]
     )
+
+    st.session_state.partner_gender = st.radio(
+        "상대방의 성별을 선택하세요:",
+        ["남성", "여성"]
+    )
+
+    st.session_state.partner_age = st.selectbox(
+        "상대방의 나이대를 선택하세요:",
+        ["10대", "20대", "30대", "40대", "50대 이상"]
+    )
+
     if st.button("💕 소개팅 시작"):
         st.session_state.history = [
             {"role": "system", "content": (
                 f"너는 소개팅에 나온 상대방이다. "
                 f"MBTI는 '{st.session_state.partner_mbti}'이다. "
-                "MBTI에 맞는 말투와 성격을 반영해서 대답하라. "
+                f"성별은 '{st.session_state.partner_gender}'이고, "
+                f"나이대는 '{st.session_state.partner_age}'이다. "
+                "MBTI와 성별, 나이대에 맞는 말투와 성격을 반영해서 대답하라. "
                 "매 턴마다 플레이어에게 짧고 자연스러운 질문을 한 가지 던져라. "
                 "불필요한 긴 설명은 하지 말고, 반드시 질문으로 끝내라."
             )}
@@ -89,7 +104,7 @@ if st.session_state.game_started:
     # 대화 표시
     for msg in st.session_state.history:
         if msg["role"] == "assistant":
-            st.markdown(f"**상대방 ({st.session_state.partner_mbti}):** {msg['content']}")
+            st.markdown(f"**상대방 ({st.session_state.partner_mbti}, {st.session_state.partner_gender}, {st.session_state.partner_age}):** {msg['content']}")
         elif msg["role"] == "user":
             st.markdown(f"**플레이어:** {msg['content']}")
 
@@ -103,9 +118,11 @@ if st.session_state.game_started:
             judge_prompt = [
                 {"role": "system", "content": (
                     f"너는 까다로운 소개팅 판정관이다. "
-                    f"상대방의 MBTI는 '{st.session_state.partner_mbti}'이다. "
+                    f"상대방의 MBTI는 '{st.session_state.partner_mbti}'이고, "
+                    f"성별은 '{st.session_state.partner_gender}', "
+                    f"나이대는 '{st.session_state.partner_age}'이다. "
                     "플레이어의 대답을 보고 호감도를 평가하라. "
-                    "- 성격에 잘 맞고 매력적이면 '+15'. "
+                    "- 성격/성별/나이대와 잘 맞고 매력적이면 '+15'. "
                     "- 그 외의 모든 경우는 무조건 '-15'. "
                     "반드시 +15 또는 -15 중 하나만 출력하라."
                 )},
