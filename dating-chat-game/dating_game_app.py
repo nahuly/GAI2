@@ -107,7 +107,7 @@ if st.session_state.game_started:
         st.session_state.partner_mbti
     )
     if os.path.exists(expression_img):
-        st.image(expression_img, width=200, caption="상대방의 표정")
+        st.image(expression_img, width=350, caption="상대방의 표정")
     else:
         st.write("⚠️ 맞는 이미지가 없습니다. 이미지 파일명을 확인하세요.")
 
