@@ -2,7 +2,7 @@ import os
 import streamlit as st
 from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 MAX_TURNS = 3
 MAX_LIKING = 100
