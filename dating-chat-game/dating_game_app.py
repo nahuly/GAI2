@@ -23,13 +23,12 @@ def reset_game():
     st.session_state.partner_age = None
 
 # 호감도에 따른 표정 이미지
-def get_expression_image(liking: int):
-    if liking >= 70:
-        return os.path.join(BASE_DIR, "images", "happy.png")
-    elif liking >= 40:
-        return os.path.join(BASE_DIR, "images", "neutral.png")
-    else:
-        return os.path.join(BASE_DIR, "images", "sad.png")
+def get_expression_image(liking: int, gender: str, mbti: str):
+    feeling = "happy" if liking >= 70 else "neutral" if liking >= 40 else "sad"
+    gender_key = "male" if gender == "남성" else "female"
+    ft_key = "F" if "F" in mbti else "T"
+    # 이미지 파일명 규칙: happy_male_F.png
+    return os.path.join(BASE_DIR, "images", f"{feeling}_{gender_key}_{ft_key}.png")
 
 # 세션 상태 초기화
 if "history" not in st.session_state:
@@ -63,10 +62,17 @@ if not st.session_state.game_started:
         st.session_state.history = [
             {"role": "system", "content": (
                 f"너는 소개팅에 나온 상대방이다. "
-                f"MBTI는 '{st.session_state.partner_mbti}'이다. "
-                f"성별은 '{st.session_state.partner_gender}'이고, "
+                f"MBTI는 '{st.session_state.partner_mbti}'이고, "
+                f"성별은 '{st.session_state.partner_gender}', "
                 f"나이대는 '{st.session_state.partner_age}'이다. "
-                "MBTI와 성별, 나이대에 맞는 말투와 성격을 반영해서 대답하라. "
+                "MBTI, 성별, 나이대에 맞는 **말투와 성격**을 반영해서 대답하라. "
+                "말투 규칙 예시: "
+                "- 10대 → 발랄하고 솔직한 말투 "
+                "- 20대 → 친근하고 편한 말투 "
+                "- 30대 → 성숙하고 차분한 말투 "
+                "- 40대 이상 → 점잖고 신중한 말투 "
+                "성별이 여성이라면 조금 더 부드럽고 친근한 말투, "
+                "남성이라면 조금 더 직설적이고 단정한 말투를 사용하라. "
                 "매 턴마다 플레이어에게 짧고 자연스러운 질문을 한 가지 던져라. "
                 "불필요한 긴 설명은 하지 말고, 반드시 질문으로 끝내라."
             )}
@@ -95,16 +101,24 @@ if st.session_state.game_started:
     )
 
     # 표정 이미지 표시
-    expression_img = get_expression_image(st.session_state.liking)
+    expression_img = get_expression_image(
+        st.session_state.liking,
+        st.session_state.partner_gender,
+        st.session_state.partner_mbti
+    )
     if os.path.exists(expression_img):
         st.image(expression_img, width=200, caption="상대방의 표정")
     else:
-        st.write("⚠️ 표정 이미지를 불러올 수 없습니다. 이미지 경로를 확인하세요.")
+        st.write("⚠️ 맞는 이미지가 없습니다. 이미지 파일명을 확인하세요.")
 
     # 대화 표시
     for msg in st.session_state.history:
         if msg["role"] == "assistant":
-            st.markdown(f"**상대방 ({st.session_state.partner_mbti}, {st.session_state.partner_gender}, {st.session_state.partner_age}):** {msg['content']}")
+            st.markdown(
+                f"**상대방 ({st.session_state.partner_mbti}, "
+                f"{st.session_state.partner_gender}, "
+                f"{st.session_state.partner_age}):** {msg['content']}"
+            )
         elif msg["role"] == "user":
             st.markdown(f"**플레이어:** {msg['content']}")
 
