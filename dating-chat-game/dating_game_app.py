@@ -4,7 +4,7 @@ from openai import OpenAI
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-MAX_TURNS = 3
+MAX_TURNS = 5   # 턴을 5로 늘림
 MAX_LIKING = 100
 
 # 세션 초기화 함수
@@ -14,25 +14,31 @@ def reset_game():
     st.session_state.turn = 0
     st.session_state.game_started = False
     st.session_state.ending_message = None
-    st.session_state.partner_personality = None
+    st.session_state.partner_mbti = None
 
 # 세션 상태 초기화
 if "history" not in st.session_state:
     reset_game()
 
-st.title("💔 까다로운 소개팅 Q&A 게임")
+st.title("💔 MBTI 소개팅 Q&A 게임")
 
-# 1. 성격 선택
+# 1. MBTI 선택
 if not st.session_state.game_started:
-    st.session_state.partner_personality = st.selectbox(
-        "상대방의 성격을 골라주세요:",
-        ["밝고 활발한", "차분하고 지적인", "장난꾸러기 같은", "새침하고 도도한"]
+    st.session_state.partner_mbti = st.selectbox(
+        "상대방의 MBTI를 골라주세요:",
+        [
+            "INTJ", "INTP", "ENTJ", "ENTP",
+            "INFJ", "INFP", "ENFJ", "ENFP",
+            "ISTJ", "ISFJ", "ESTJ", "ESFJ",
+            "ISTP", "ISFP", "ESTP", "ESFP"
+        ]
     )
     if st.button("💕 소개팅 시작"):
         st.session_state.history = [
             {"role": "system", "content": (
                 f"너는 소개팅에 나온 상대방이다. "
-                f"성격은 '{st.session_state.partner_personality}' 스타일이다. "
+                f"MBTI는 '{st.session_state.partner_mbti}'이다. "
+                "MBTI에 맞는 말투와 성격을 반영해서 대답하라. "
                 "매 턴마다 플레이어에게 짧고 자연스러운 질문을 한 가지 던져라. "
                 "불필요한 긴 설명은 하지 말고, 반드시 질문으로 끝내라."
             )}
@@ -61,7 +67,7 @@ if st.session_state.game_started:
     # 대화 표시
     for msg in st.session_state.history:
         if msg["role"] == "assistant":
-            st.markdown(f"**상대방:** {msg['content']}")
+            st.markdown(f"**상대방 ({st.session_state.partner_mbti}):** {msg['content']}")
         elif msg["role"] == "user":
             st.markdown(f"**플레이어:** {msg['content']}")
 
@@ -75,7 +81,7 @@ if st.session_state.game_started:
             judge_prompt = [
                 {"role": "system", "content": (
                     f"너는 까다로운 소개팅 판정관이다. "
-                    f"상대방의 성격은 '{st.session_state.partner_personality}'이다. "
+                    f"상대방의 MBTI는 '{st.session_state.partner_mbti}'이다. "
                     "플레이어의 대답을 보고 호감도를 평가하라. "
                     "- 성격에 잘 맞고 매력적이면 '+15'. "
                     "- 그 외의 모든 경우는 무조건 '-15'. "
