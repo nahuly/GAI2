@@ -88,7 +88,7 @@ if uploaded_file is not None:
     rel_df = pd.DataFrame(dir_scores)
 
     # (1) 요청: 친밀도 지수는 From, To, Score100만 + 내림차순
-    st.subheader("💞 친밀도 지수 (100점 만점, 방향성)")
+    st.subheader("💞 친밀도 지수 (100점 만점)")
     if rel_df.empty:
         st.warning("계산 가능한 친밀도 지수가 없습니다.")
     else:
@@ -113,12 +113,18 @@ if uploaded_file is not None:
     st.dataframe(pct_tbl, use_container_width=True)
     st.bar_chart(pct_tbl)
 
+    # 이모티콘 비율 (내림차순)
+    st.subheader("😀 이모티콘 사용 비율 (%)")
+    df["IsEmoji"] = df["Message"].astype(str).str.contains("이모티콘|😂|🤣|❤️|👍|ㅠㅠ|ㅎㅎ|ㅋ", regex=True)
+    emoji_ratio = (df.groupby("User")["IsEmoji"].mean() * 100).round(2).sort_values(ascending=False)
+    st.bar_chart(emoji_ratio)
+
     # --- 네트워크 위에 참여자 표 한 번 더 (요청 1) ---
     st.subheader("👥 대화 참여자 (네트워크 섹션용)")
     st.dataframe(map_df, use_container_width=True)
 
     # (2)(3) 네트워크 그래프: 범례 제거, 인기(= in-weight 합) 큰 노드는 별표(*)로 표시
-    st.subheader("🔗 대화 관계 네트워크 (영문 라벨 + 방향, 인기별 크기/모양)")
+    st.subheader("🔗 대화 관계 네트워크")
 
     if not rel_df.empty:
         G = nx.DiGraph()
@@ -193,9 +199,3 @@ if uploaded_file is not None:
         st.pyplot(plt)
     else:
         st.info("표시할 네트워크가 없습니다.")
-
-    # 이모티콘 비율 (내림차순)
-    st.subheader("😀 이모티콘 사용 비율 (%)")
-    df["IsEmoji"] = df["Message"].astype(str).str.contains("이모티콘|😂|🤣|❤️|👍|ㅠㅠ|ㅎㅎ|ㅋ", regex=True)
-    emoji_ratio = (df.groupby("User")["IsEmoji"].mean() * 100).round(2).sort_values(ascending=False)
-    st.bar_chart(emoji_ratio)
