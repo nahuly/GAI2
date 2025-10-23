@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import networkx as nx
 
-st.title("📱 카톡 대화 관계 분석기 (정렬 · 인기별 표시 적용)")
+st.title("📱 카톡 대화 관계 분석기")
 
 uploaded_file = st.file_uploader("talk1.csv 파일을 업로드하세요", type=["csv"])
 
