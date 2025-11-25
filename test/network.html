@@ -1,0 +1,164 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"font": {"color": "black"}, "group": "\ub370\uc774\ud130\ubd84\uc11d\ub7a9", "id": "\uae40\uc218\ud615", "label": "\uae40\uc218\ud615", "shape": "dot", "size": 186, "title": "\uc774\ub984: \uae40\uc218\ud615\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: \ub370\uc774\ud130\ubd84\uc11d\ub7a9\u003cbr\u003e\uc9c1\uc704: \uc2e4\uc7a5\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: nan\u003cbr\u003eMBTI: nan\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: nan"}, {"font": {"color": "black"}, "group": "BI\uc140", "id": "\uae40\uc120\uc601", "label": "\uae40\uc120\uc601", "shape": "dot", "size": 122, "title": "\uc774\ub984: \uae40\uc120\uc601\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: BI\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc7a5\u003cbr\u003e\uc9c1\uad70: \uae30\uc220\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: nan\u003cbr\u003eMBTI: ESFJ\u003cbr\u003e\ud608\uc561\ud615: A\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: nan"}, {"font": {"color": "black"}, "group": "BI\uc140", "id": "\uc1a1\ub300\uc12d", "label": "\uc1a1\ub300\uc12d", "shape": "dot", "size": 218, "title": "\uc774\ub984: \uc1a1\ub300\uc12d\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: BI\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: nan\u003cbr\u003eMBTI: nan\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: nan"}, {"font": {"color": "black"}, "group": "BI\uc140", "id": "\uc774\ub098\uc5f0", "label": "\uc774\ub098\uc5f0", "shape": "dot", "size": 218, "title": "\uc774\ub984: \uc774\ub098\uc5f0\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: BI\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: 2022.0\u003cbr\u003eMBTI: INFJ\u003cbr\u003e\ud608\uc561\ud615: A\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: nan"}, {"font": {"color": "black"}, "group": "BI\uc140", "id": "\uc720\uc120\uc815", "label": "\uc720\uc120\uc815", "shape": "dot", "size": 158, "title": "\uc774\ub984: \uc720\uc120\uc815\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: BI\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uae30\uc220\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: 2023.0\u003cbr\u003eMBTI: INFP\u003cbr\u003e\ud608\uc561\ud615: A\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: nan"}, {"font": {"color": "black"}, "group": "BI\uc140", "id": "\uc870\uc2b9\ubbfc", "label": "\uc870\uc2b9\ubbfc", "shape": "dot", "size": 128, "title": "\uc774\ub984: \uc870\uc2b9\ubbfc\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: BI\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uae30\uc220\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: 2024.0\u003cbr\u003eMBTI: ESFJ\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: 2024 \uc785\uc0ac \ub3d9\uae30"}, {"font": {"color": "black"}, "group": "BI\uc140", "id": "\uae40\uc6a9\ud658", "label": "\uae40\uc6a9\ud658", "shape": "dot", "size": 218, "title": "\uc774\ub984: \uae40\uc6a9\ud658\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: BI\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: 2024.0\u003cbr\u003eMBTI: INFP\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: 2024 \uc785\uc0ac \ub3d9\uae30"}, {"font": {"color": "black"}, "group": "BI\uc140", "id": "\uac15\ub3d9\uc9c4", "label": "\uac15\ub3d9\uc9c4", "shape": "dot", "size": 138, "title": "\uc774\ub984: \uac15\ub3d9\uc9c4\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: BI\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uae30\uc220\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: 2021.0\u003cbr\u003eMBTI: ESF?\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: 2021 \uc778\ud134 \ub3d9\uae30"}, {"font": {"color": "black"}, "group": "BI\uc140", "id": "\uc870\uc724\uc601", "label": "\uc870\uc724\uc601", "shape": "dot", "size": 218, "title": "\uc774\ub984: \uc870\uc724\uc601\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: BI\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: 2021.0\u003cbr\u003eMBTI: INTJ\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: 2021 \uc778\ud134 \ub3d9\uae30"}, {"font": {"color": "black"}, "group": "\ub370\uc774\ud130\ud14c\ud06c\uc140", "id": "\uc870\uc740\ud76c", "label": "\uc870\uc740\ud76c", "shape": "dot", "size": 192, "title": "\uc774\ub984: \uc870\uc740\ud76c\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: \ub370\uc774\ud130\ud14c\ud06c\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc7a5\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: nan\u003cbr\u003eMBTI: I?T?\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: nan"}, {"font": {"color": "black"}, "group": "\ub370\uc774\ud130\ud14c\ud06c\uc140", "id": "\uc815\ub3d9\uc8fc", "label": "\uc815\ub3d9\uc8fc", "shape": "dot", "size": 188, "title": "\uc774\ub984: \uc815\ub3d9\uc8fc\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: \ub370\uc774\ud130\ud14c\ud06c\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: nan\u003cbr\u003eMBTI: ISFP\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: nan"}, {"font": {"color": "black"}, "group": "\ub370\uc774\ud130\ud14c\ud06c\uc140", "id": "\uc724\ud0dc\uc2dd", "label": "\uc724\ud0dc\uc2dd", "shape": "dot", "size": 178, "title": "\uc774\ub984: \uc724\ud0dc\uc2dd\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: \ub370\uc774\ud130\ud14c\ud06c\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: nan\u003cbr\u003eMBTI: nan\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: nan"}, {"font": {"color": "black"}, "group": "\ub370\uc774\ud130\ud14c\ud06c\uc140", "id": "\uc774\ucc3d\uc6b1", "label": "\uc774\ucc3d\uc6b1", "shape": "dot", "size": 198, "title": "\uc774\ub984: \uc774\ucc3d\uc6b1\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: \ub370\uc774\ud130\ud14c\ud06c\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: 2021.0\u003cbr\u003eMBTI: INTP\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: 2021 \uacf5\ucc44 \ub3d9\uae30"}, {"font": {"color": "black"}, "group": "\ub370\uc774\ud130\ud14c\ud06c\uc140", "id": "\uae40\ubc94\uc900", "label": "\uae40\ubc94\uc900", "shape": "dot", "size": 188, "title": "\uc774\ub984: \uae40\ubc94\uc900\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: \ub370\uc774\ud130\ud14c\ud06c\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: 2024.0\u003cbr\u003eMBTI: nan\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: 2024 \uc785\uc0ac \ub3d9\uae30"}, {"font": {"color": "black"}, "group": "\ub370\uc774\ud130\ud14c\ud06c\uc140", "id": "\uae40\ud76c\uc6d0", "label": "\uae40\ud76c\uc6d0", "shape": "dot", "size": 208, "title": "\uc774\ub984: \uae40\ud76c\uc6d0\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: \ub370\uc774\ud130\ud14c\ud06c\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: 2021.0\u003cbr\u003eMBTI: ENFP\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: 2021 \uc778\ud134 \ub3d9\uae30"}, {"font": {"color": "black"}, "group": "\uc774\uc0c1\ud0d0\uc9c0\uc140", "id": "\ubc15\uc885\ubc94", "label": "\ubc15\uc885\ubc94", "shape": "dot", "size": 182, "title": "\uc774\ub984: \ubc15\uc885\ubc94\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: \uc774\uc0c1\ud0d0\uc9c0\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc7a5\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: nan\u003cbr\u003eMBTI: nan\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: nan"}, {"font": {"color": "black"}, "group": "\uc774\uc0c1\ud0d0\uc9c0\uc140", "id": "\uc8fc\ucca0\ubbfc", "label": "\uc8fc\ucca0\ubbfc", "shape": "dot", "size": 188, "title": "\uc774\ub984: \uc8fc\ucca0\ubbfc\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: \uc774\uc0c1\ud0d0\uc9c0\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: nan\u003cbr\u003eMBTI: INFJ\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: nan"}, {"font": {"color": "black"}, "group": "\uc774\uc0c1\ud0d0\uc9c0\uc140", "id": "\uae40\uc6b0\uc601", "label": "\uae40\uc6b0\uc601", "shape": "dot", "size": 178, "title": "\uc774\ub984: \uae40\uc6b0\uc601\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: \uc774\uc0c1\ud0d0\uc9c0\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: nan\u003cbr\u003eMBTI: nan\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: nan"}, {"font": {"color": "black"}, "group": "\uc774\uc0c1\ud0d0\uc9c0\uc140", "id": "\uc774\uc885\uc6b0", "label": "\uc774\uc885\uc6b0", "shape": "dot", "size": 198, "title": "\uc774\ub984: \uc774\uc885\uc6b0\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: \uc774\uc0c1\ud0d0\uc9c0\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: 2021.0\u003cbr\u003eMBTI: INTJ\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: 2021 \uacf5\ucc44 \ub3d9\uae30"}, {"font": {"color": "black"}, "group": "\uc774\uc0c1\ud0d0\uc9c0\uc140", "id": "\uae40\ud61c\uc815", "label": "\uae40\ud61c\uc815", "shape": "dot", "size": 218, "title": "\uc774\ub984: \uae40\ud61c\uc815\u003cbr\u003eldap: \u003cbr\u003e\uc18c\uc18d: \uc774\uc0c1\ud0d0\uc9c0\uc140\u003cbr\u003e\uc9c1\uc704: \uc140\uc6d0\u003cbr\u003e\uc9c1\uad70: \uac1c\ubc1c\u003cbr\u003e\uc785\uc0ac\ub144\ub3c4: 2023.0\u003cbr\u003eMBTI: ENFJ\u003cbr\u003e\ud608\uc561\ud615: nan\u003cbr\u003e\ub3d9\uae30 \uc5ec\ubd80: nan"}]);
+                  edges = new vis.DataSet([{"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc1a1\ub300\uc12d", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc774\ub098\uc5f0", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\uc6a9\ud658", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc870\uc724\uc601", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc870\uc740\ud76c", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc815\ub3d9\uc8fc", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc724\ud0dc\uc2dd", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc774\ucc3d\uc6b1", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ubc94\uc900", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud76c\uc6d0", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\ubc15\uc885\ubc94", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc8fc\ucca0\ubbfc", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\uc6b0\uc601", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc774\uc885\uc6b0", "value": 1}, {"from": "\uae40\uc218\ud615", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud61c\uc815", "value": 1}, {"from": "\uae40\uc120\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2", "to": "\uc1a1\ub300\uc12d", "value": 2}, {"from": "\uae40\uc120\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2", "to": "\uc774\ub098\uc5f0", "value": 2}, {"from": "\uae40\uc120\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uc720\uc120\uc815", "value": 3}, {"from": "\uae40\uc120\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3.5", "to": "\uc870\uc2b9\ubbfc", "value": 3.5}, {"from": "\uae40\uc120\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2", "to": "\uae40\uc6a9\ud658", "value": 2}, {"from": "\uae40\uc120\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3.5", "to": "\uac15\ub3d9\uc9c4", "value": 3.5}, {"from": "\uae40\uc120\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2", "to": "\uc870\uc724\uc601", "value": 2}, {"from": "\uae40\uc120\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 0.5", "to": "\uae40\ud76c\uc6d0", "value": 0.5}, {"from": "\uae40\uc120\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 0.5", "to": "\uae40\ud61c\uc815", "value": 0.5}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uc774\ub098\uc5f0", "value": 3}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2", "to": "\uc720\uc120\uc815", "value": 2}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2", "to": "\uc870\uc2b9\ubbfc", "value": 2}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\uc6a9\ud658", "value": 3}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2", "to": "\uac15\ub3d9\uc9c4", "value": 2}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uc870\uc724\uc601", "value": 3}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc870\uc740\ud76c", "value": 1}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc815\ub3d9\uc8fc", "value": 1}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc724\ud0dc\uc2dd", "value": 1}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc774\ucc3d\uc6b1", "value": 1}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ubc94\uc900", "value": 1}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud76c\uc6d0", "value": 1}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\ubc15\uc885\ubc94", "value": 1}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc8fc\ucca0\ubbfc", "value": 1}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\uc6b0\uc601", "value": 1}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc774\uc885\uc6b0", "value": 1}, {"from": "\uc1a1\ub300\uc12d", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud61c\uc815", "value": 1}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2.5", "to": "\uc720\uc120\uc815", "value": 2.5}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2", "to": "\uc870\uc2b9\ubbfc", "value": 2}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3.5", "to": "\uae40\uc6a9\ud658", "value": 3.5}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2", "to": "\uac15\ub3d9\uc9c4", "value": 2}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3.5", "to": "\uc870\uc724\uc601", "value": 3.5}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc870\uc740\ud76c", "value": 1.5}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc815\ub3d9\uc8fc", "value": 1.5}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc724\ud0dc\uc2dd", "value": 1}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc774\ucc3d\uc6b1", "value": 1.5}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ubc94\uc900", "value": 1}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud76c\uc6d0", "value": 1}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\ubc15\uc885\ubc94", "value": 1}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc8fc\ucca0\ubbfc", "value": 1.5}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\uc6b0\uc601", "value": 1}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc774\uc885\uc6b0", "value": 1.5}, {"from": "\uc774\ub098\uc5f0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud61c\uc815", "value": 1}, {"from": "\uc720\uc120\uc815", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uc870\uc2b9\ubbfc", "value": 3}, {"from": "\uc720\uc120\uc815", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2.5", "to": "\uae40\uc6a9\ud658", "value": 2.5}, {"from": "\uc720\uc120\uc815", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uac15\ub3d9\uc9c4", "value": 3}, {"from": "\uc720\uc120\uc815", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2.5", "to": "\uc870\uc724\uc601", "value": 2.5}, {"from": "\uc720\uc120\uc815", "title": "\uc5f0\uacb0 \uac15\ub3c4: 0.5", "to": "\uc870\uc740\ud76c", "value": 0.5}, {"from": "\uc720\uc120\uc815", "title": "\uc5f0\uacb0 \uac15\ub3c4: 0.5", "to": "\uc815\ub3d9\uc8fc", "value": 0.5}, {"from": "\uc720\uc120\uc815", "title": "\uc5f0\uacb0 \uac15\ub3c4: 0.5", "to": "\uc774\ucc3d\uc6b1", "value": 0.5}, {"from": "\uc720\uc120\uc815", "title": "\uc5f0\uacb0 \uac15\ub3c4: 0.5", "to": "\uc8fc\ucca0\ubbfc", "value": 0.5}, {"from": "\uc720\uc120\uc815", "title": "\uc5f0\uacb0 \uac15\ub3c4: 0.5", "to": "\uc774\uc885\uc6b0", "value": 0.5}, {"from": "\uc720\uc120\uc815", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ud61c\uc815", "value": 3}, {"from": "\uc870\uc2b9\ubbfc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 9", "to": "\uae40\uc6a9\ud658", "value": 9}, {"from": "\uc870\uc2b9\ubbfc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3.5", "to": "\uac15\ub3d9\uc9c4", "value": 3.5}, {"from": "\uc870\uc2b9\ubbfc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2", "to": "\uc870\uc724\uc601", "value": 2}, {"from": "\uc870\uc2b9\ubbfc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 7", "to": "\uae40\ubc94\uc900", "value": 7}, {"from": "\uc870\uc2b9\ubbfc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 0.5", "to": "\uae40\ud76c\uc6d0", "value": 0.5}, {"from": "\uc870\uc2b9\ubbfc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 0.5", "to": "\uae40\ud61c\uc815", "value": 0.5}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 2", "to": "\uac15\ub3d9\uc9c4", "value": 2}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3.5", "to": "\uc870\uc724\uc601", "value": 3.5}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc870\uc740\ud76c", "value": 1.5}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc815\ub3d9\uc8fc", "value": 1.5}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc724\ud0dc\uc2dd", "value": 1}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc774\ucc3d\uc6b1", "value": 1.5}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 8", "to": "\uae40\ubc94\uc900", "value": 8}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud76c\uc6d0", "value": 1}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\ubc15\uc885\ubc94", "value": 1}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc8fc\ucca0\ubbfc", "value": 1.5}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\uc6b0\uc601", "value": 1}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc774\uc885\uc6b0", "value": 1.5}, {"from": "\uae40\uc6a9\ud658", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud61c\uc815", "value": 1}, {"from": "\uac15\ub3d9\uc9c4", "title": "\uc5f0\uacb0 \uac15\ub3c4: 9", "to": "\uc870\uc724\uc601", "value": 9}, {"from": "\uac15\ub3d9\uc9c4", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uc774\ucc3d\uc6b1", "value": 3}, {"from": "\uac15\ub3d9\uc9c4", "title": "\uc5f0\uacb0 \uac15\ub3c4: 7.5", "to": "\uae40\ud76c\uc6d0", "value": 7.5}, {"from": "\uac15\ub3d9\uc9c4", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uc774\uc885\uc6b0", "value": 3}, {"from": "\uac15\ub3d9\uc9c4", "title": "\uc5f0\uacb0 \uac15\ub3c4: 0.5", "to": "\uae40\ud61c\uc815", "value": 0.5}, {"from": "\uc870\uc724\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc870\uc740\ud76c", "value": 1.5}, {"from": "\uc870\uc724\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc815\ub3d9\uc8fc", "value": 1.5}, {"from": "\uc870\uc724\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc724\ud0dc\uc2dd", "value": 1}, {"from": "\uc870\uc724\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 4.5", "to": "\uc774\ucc3d\uc6b1", "value": 4.5}, {"from": "\uc870\uc724\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ubc94\uc900", "value": 1}, {"from": "\uc870\uc724\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 8", "to": "\uae40\ud76c\uc6d0", "value": 8}, {"from": "\uc870\uc724\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\ubc15\uc885\ubc94", "value": 1}, {"from": "\uc870\uc724\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc8fc\ucca0\ubbfc", "value": 1.5}, {"from": "\uc870\uc724\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\uc6b0\uc601", "value": 1}, {"from": "\uc870\uc724\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 4.5", "to": "\uc774\uc885\uc6b0", "value": 4.5}, {"from": "\uc870\uc724\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud61c\uc815", "value": 1}, {"from": "\uc870\uc740\ud76c", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3.5", "to": "\uc815\ub3d9\uc8fc", "value": 3.5}, {"from": "\uc870\uc740\ud76c", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uc724\ud0dc\uc2dd", "value": 3}, {"from": "\uc870\uc740\ud76c", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3.5", "to": "\uc774\ucc3d\uc6b1", "value": 3.5}, {"from": "\uc870\uc740\ud76c", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ubc94\uc900", "value": 3}, {"from": "\uc870\uc740\ud76c", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ud76c\uc6d0", "value": 3}, {"from": "\uc870\uc740\ud76c", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\ubc15\uc885\ubc94", "value": 1}, {"from": "\uc870\uc740\ud76c", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc8fc\ucca0\ubbfc", "value": 1.5}, {"from": "\uc870\uc740\ud76c", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\uc6b0\uc601", "value": 1}, {"from": "\uc870\uc740\ud76c", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc774\uc885\uc6b0", "value": 1.5}, {"from": "\uc870\uc740\ud76c", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud61c\uc815", "value": 1}, {"from": "\uc815\ub3d9\uc8fc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uc724\ud0dc\uc2dd", "value": 3}, {"from": "\uc815\ub3d9\uc8fc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3.5", "to": "\uc774\ucc3d\uc6b1", "value": 3.5}, {"from": "\uc815\ub3d9\uc8fc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ubc94\uc900", "value": 3}, {"from": "\uc815\ub3d9\uc8fc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ud76c\uc6d0", "value": 3}, {"from": "\uc815\ub3d9\uc8fc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\ubc15\uc885\ubc94", "value": 1}, {"from": "\uc815\ub3d9\uc8fc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc8fc\ucca0\ubbfc", "value": 1.5}, {"from": "\uc815\ub3d9\uc8fc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\uc6b0\uc601", "value": 1}, {"from": "\uc815\ub3d9\uc8fc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc774\uc885\uc6b0", "value": 1.5}, {"from": "\uc815\ub3d9\uc8fc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud61c\uc815", "value": 1}, {"from": "\uc724\ud0dc\uc2dd", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uc774\ucc3d\uc6b1", "value": 3}, {"from": "\uc724\ud0dc\uc2dd", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ubc94\uc900", "value": 3}, {"from": "\uc724\ud0dc\uc2dd", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ud76c\uc6d0", "value": 3}, {"from": "\uc724\ud0dc\uc2dd", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\ubc15\uc885\ubc94", "value": 1}, {"from": "\uc724\ud0dc\uc2dd", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc8fc\ucca0\ubbfc", "value": 1}, {"from": "\uc724\ud0dc\uc2dd", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\uc6b0\uc601", "value": 1}, {"from": "\uc724\ud0dc\uc2dd", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc774\uc885\uc6b0", "value": 1}, {"from": "\uc724\ud0dc\uc2dd", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud61c\uc815", "value": 1}, {"from": "\uc774\ucc3d\uc6b1", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ubc94\uc900", "value": 3}, {"from": "\uc774\ucc3d\uc6b1", "title": "\uc5f0\uacb0 \uac15\ub3c4: 6", "to": "\uae40\ud76c\uc6d0", "value": 6}, {"from": "\uc774\ucc3d\uc6b1", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\ubc15\uc885\ubc94", "value": 1}, {"from": "\uc774\ucc3d\uc6b1", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uc8fc\ucca0\ubbfc", "value": 1.5}, {"from": "\uc774\ucc3d\uc6b1", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\uc6b0\uc601", "value": 1}, {"from": "\uc774\ucc3d\uc6b1", "title": "\uc5f0\uacb0 \uac15\ub3c4: 8.5", "to": "\uc774\uc885\uc6b0", "value": 8.5}, {"from": "\uc774\ucc3d\uc6b1", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud61c\uc815", "value": 1}, {"from": "\uae40\ubc94\uc900", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ud76c\uc6d0", "value": 3}, {"from": "\uae40\ubc94\uc900", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\ubc15\uc885\ubc94", "value": 1}, {"from": "\uae40\ubc94\uc900", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc8fc\ucca0\ubbfc", "value": 1}, {"from": "\uae40\ubc94\uc900", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\uc6b0\uc601", "value": 1}, {"from": "\uae40\ubc94\uc900", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc774\uc885\uc6b0", "value": 1}, {"from": "\uae40\ubc94\uc900", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\ud61c\uc815", "value": 1}, {"from": "\uae40\ud76c\uc6d0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\ubc15\uc885\ubc94", "value": 1}, {"from": "\uae40\ud76c\uc6d0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uc8fc\ucca0\ubbfc", "value": 1}, {"from": "\uae40\ud76c\uc6d0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1", "to": "\uae40\uc6b0\uc601", "value": 1}, {"from": "\uae40\ud76c\uc6d0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 4", "to": "\uc774\uc885\uc6b0", "value": 4}, {"from": "\uae40\ud76c\uc6d0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 1.5", "to": "\uae40\ud61c\uc815", "value": 1.5}, {"from": "\ubc15\uc885\ubc94", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uc8fc\ucca0\ubbfc", "value": 3}, {"from": "\ubc15\uc885\ubc94", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\uc6b0\uc601", "value": 3}, {"from": "\ubc15\uc885\ubc94", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uc774\uc885\uc6b0", "value": 3}, {"from": "\ubc15\uc885\ubc94", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ud61c\uc815", "value": 3}, {"from": "\uc8fc\ucca0\ubbfc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\uc6b0\uc601", "value": 3}, {"from": "\uc8fc\ucca0\ubbfc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3.5", "to": "\uc774\uc885\uc6b0", "value": 3.5}, {"from": "\uc8fc\ucca0\ubbfc", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ud61c\uc815", "value": 3}, {"from": "\uae40\uc6b0\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uc774\uc885\uc6b0", "value": 3}, {"from": "\uae40\uc6b0\uc601", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ud61c\uc815", "value": 3}, {"from": "\uc774\uc885\uc6b0", "title": "\uc5f0\uacb0 \uac15\ub3c4: 3", "to": "\uae40\ud61c\uc815", "value": 3}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "forceAtlas2Based": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.01,
+            "damping": 0.4,
+            "gravitationalConstant": -50,
+            "springConstant": 0.08,
+            "springLength": 100
+        },
+        "solver": "forceAtlas2Based",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
