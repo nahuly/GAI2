@@ -1,0 +1,6 @@
+streamlit==1.39.0
+pyvis==0.3.2
+networkx==3.3
+pandas==2.2.2
+matplotlib==3.9.2
+openai==1.52.0
