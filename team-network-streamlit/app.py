@@ -1,4 +1,5 @@
 import os, io, json, base64, re
+import numpy as np
 import pandas as pd
 import streamlit as st
 from streamlit.components.v1 import html
@@ -6,11 +7,27 @@ import networkx as nx
 from pyvis.network import Network
 import matplotlib.pyplot as plt
 from openai import OpenAI
+from matplotlib import font_manager  
 
 # -----------------------------------------
 # 🔐 OpenAI Client (이미지 생성 제외, 텍스트 기능만)
 # -----------------------------------------
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+
+# ---------------- 한글 폰트 설정 (NanumGothic) ----------------
+FONT_PATH = os.path.join(os.path.dirname(__file__), "lib", "NanumGothic.ttf")
+
+if os.path.exists(FONT_PATH):
+    font_manager.fontManager.addfont(FONT_PATH)
+    plt.rcParams["font.family"] = "NanumGothic"
+    plt.rcParams["axes.unicode_minus"] = False  # 마이너스 깨짐 방지
+else:
+    # 로컬/클라우드에서 폰트가 없으면 경고만 띄우고 기본 폰트 사용
+    st.warning(f"한글 폰트 파일을 찾을 수 없습니다: {FONT_PATH}")
+
+
+
 
 # -----------------------------------------
 # 📌 Streamlit 기본 설정
@@ -94,7 +111,7 @@ default_csv = """이름,ldap,소속,직위,직군,탄생년도,입사년도,MBTI
 조은희,alysia.c,데이터테크셀,셀장,개발,1980,2017,ISTP,A,,카카오,여자,힐링,액티비티,서울,기혼,alysia.png
 정동주,dj.jeong,데이터테크셀,셀원,개발,1988,2017.3.20,ISFP,AB,,,여자,힐링,액티비티,서울,기혼,dj.png
 윤태식,levi.y,데이터테크셀,셀원,개발,1992,2020.12.22,ENTJ,B,,,남자,액티비티,액티비티,서울,기혼,levi.png
-이창욱,carl.lee,데이터테크셀,셀원,개발,1993,2021.11.30,INTP,,2021 공채 동기,,남자,힐링,액티비티,경기도,미혼,carl.png
+이창욱,carl.lee,데이터테크셀,셀원,개발,1993,2021.11.30,INTP,B,2021 공채 동기,,남자,힐링,액티비티,경기도,미혼,carl.png
 김범준,breadly.abc,데이터테크셀,셀원,개발,1994,2024.11.18,ISFJ,O,2024 경력직 동기,,남자,,액티비티,서울,기혼,breadly.png
 김희원,wonnie.kim,데이터테크셀,셀원,개발,1997,2021.6.23,ENFP,B,2021 인턴 동기,,여자,액티비티,힐링,서울,미혼,wonnie.png
 박종범,jaybe.park,이상탐지셀,셀장,개발,1990,2019,ESTP,A,,,남자,액티비티,액티비티,서울,기혼,jaybe.png
@@ -116,7 +133,8 @@ df.columns = [c.strip() for c in df.columns]
 if "Image" in df.columns and "image" not in df.columns:
     df["image"] = df["Image"]
 
-df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
+
 
 # -----------------------------------------
 # 이미지 저장 디렉토리
@@ -200,6 +218,19 @@ def extract_year(v):
         yy = int(m2.group(1))
         return 1900 + yy if yy >= 50 else 2000 + yy
     return None
+
+# 세대 구분용 헬퍼
+def generation_from_year(y):
+    if y is None or (isinstance(y, float) and np.isnan(y)):
+        return None
+    y = int(y)
+    if y <= 1980:
+        return "X세대"
+    elif y <= 1996:
+        return "밀레니얼"
+    else:
+        return "Z세대+"
+
 
 df["탄생년도_Y"] = df["탄생년도"].apply(extract_year)
 df["입사년도_Y"] = df["입사년도"].apply(extract_year)
@@ -875,27 +906,91 @@ if MISSING_IMAGES:
 # 📊 Helper: bar chart with labels
 # ==========================================
 
-def plot_bar_with_labels(data, title, xlabel="", ylabel=""):
-    fig, ax = plt.subplots()
-    bars = ax.bar(data.index.astype(str), data.values)
+import matplotlib.pyplot as plt
 
+def plot_bar_with_labels(data, title, xlabel="", ylabel="", color="#6366F1"):
+    """
+    data: pandas Series (index = label, values = 숫자)
+    color: 막대 색 (기본 인디고)
+    """
+    fig, ax = plt.subplots()
+    bars = ax.bar(data.index.astype(str), data.values, color=color)
+
+    # 레이블 추가
     for bar in bars:
         yval = bar.get_height()
         ax.text(
-            bar.get_x() + bar.get_width()/2,
+            bar.get_x() + bar.get_width() / 2,
             yval,
             f"{yval:.0f}",
             ha="center",
             va="bottom",
-            fontsize=9
+            fontsize=9,
         )
 
     ax.set_title(title)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+    ax.grid(axis="y", alpha=0.2, linestyle="--")
     plt.xticks(rotation=45)
     plt.tight_layout()
     return fig
+
+
+
+# ==========================================
+# 📌 네트워크 중심성 분석 (Degree / Betweenness / Closeness / Eigenvector)
+# ==========================================
+with st.expander("📌 네트워크 중심성 분석 (Degree / Betweenness / Closeness / Eigenvector)"):
+    if G.number_of_nodes() == 0:
+        st.info("그래프에 노드가 없어 중심성을 계산할 수 없습니다.")
+    else:
+        # 중심성 계산
+        degree_c = nx.degree_centrality(G)
+        betweenness_c = nx.betweenness_centrality(G, normalized=True)
+        closeness_c = nx.closeness_centrality(G)
+        try:
+            eigen_c = nx.eigenvector_centrality(G, max_iter=1000)
+        except nx.PowerIterationFailedConvergence:
+            eigen_c = {n: float("nan") for n in G.nodes()}
+
+        rows = []
+        for nid in G.nodes():
+            row = df[df["node_id"] == nid].iloc[0]
+            rows.append(
+                {
+                    "이름": row.get("이름", nid),
+                    "소속": row.get("소속", ""),
+                    "Degree": degree_c.get(nid, 0.0),
+                    "Betweenness": betweenness_c.get(nid, 0.0),
+                    "Closeness": closeness_c.get(nid, 0.0),
+                    "Eigenvector": eigen_c.get(nid, 0.0),
+                }
+            )
+
+        centrality_df = pd.DataFrame(rows).set_index("이름")
+
+        st.markdown("**중심성 Top 5 (Eigenvector 기준)**")
+        # 숫자 컬럼만 포맷 적용
+        num_cols = ["Degree", "Betweenness", "Closeness", "Eigenvector"]
+
+        top5 = centrality_df.sort_values("Eigenvector", ascending=False).head(5)
+        top5_style = top5.style.format("{:.3f}", subset=num_cols)
+
+        st.dataframe(top5_style)
+
+        metric = st.selectbox(
+            "시각화할 지표 선택",
+            ["Degree", "Betweenness", "Closeness", "Eigenvector"],
+            index=3,
+        )
+
+        fig_c = plot_bar_with_labels(
+            centrality_df.sort_values(metric, ascending=False)[metric].head(15),
+            f"{metric} 상위 15명",
+            ylabel="값",
+        )
+        st.pyplot(fig_c)
 
 
 # ==========================================
@@ -911,9 +1006,15 @@ with st.expander("📊 MBTI / 입사년도 분포 차트"):
     mbti_series = df["MBTI"].dropna().astype(str).str.strip()
     mbti_series = mbti_series[mbti_series != ""]
     if not mbti_series.empty:
-        mbti_counts = mbti_series.value_counts().sort_index()
+        # 🔹 많이 나온 순으로 정렬
+        mbti_counts = mbti_series.value_counts().sort_values(ascending=False)
         col1.markdown("**MBTI 분포**")
-        fig = plot_bar_with_labels(mbti_counts, "MBTI 분포", ylabel="Count")
+        fig = plot_bar_with_labels(
+            mbti_counts,
+            "MBTI 분포",
+            ylabel="명",
+            color="#6366F1",  # 인디고
+        )
         col1.pyplot(fig)
     else:
         col1.info("MBTI 데이터가 없습니다.")
@@ -927,7 +1028,12 @@ with st.expander("📊 MBTI / 입사년도 분포 차트"):
         if not years.empty:
             year_counts = years.value_counts().sort_index()
             col2.markdown("**입사년도 분포 (정규화)**")
-            fig2 = plot_bar_with_labels(year_counts, "입사년도 분포", ylabel="명")
+            fig2 = plot_bar_with_labels(
+                year_counts,
+                "입사년도 분포",
+                ylabel="명",
+                color="#22C55E",  # 초록
+            )
             col2.pyplot(fig2)
         else:
             col2.info("입사년도 데이터가 없습니다.")
@@ -1043,6 +1149,233 @@ with st.expander("📊 MBTI / 입사년도 분포 차트"):
     else:
         st.info("`소속` 또는 `MBTI` 컬럼이 없어 소속별 비율을 계산할 수 없습니다.")
 
+# ==========================================
+# 🧬 MBTI 요소 비율 막대형 히트맵
+# ==========================================
+with st.expander("🧬 MBTI 요소 비율 히트맵 (막대형)"):
+    mbti_clean = df["MBTI"].dropna().astype(str).str.strip()
+    mbti_clean = mbti_clean[
+        (mbti_clean != "") & (~mbti_clean.str.contains(r"\?")) & (mbti_clean.str.len() >= 4)
+    ]
+
+    if mbti_clean.empty:
+        st.info("유효한 MBTI 데이터가 없습니다.")
+    else:
+        pairs = {
+            "I/E": ("I", "E", mbti_clean.str[0]),
+            "N/S": ("N", "S", mbti_clean.str[1]),
+            "T/F": ("T", "F", mbti_clean.str[2]),
+            "J/P": ("J", "P", mbti_clean.str[3]),
+        }
+
+        fig, ax = plt.subplots(figsize=(8, 6))
+        y_labels = []
+        left_bars = []
+        right_bars = []
+        left_labels = []
+        right_labels = []
+
+        for idx, (label, (left_key, right_key, series)) in enumerate(pairs.items()):
+            counts = series.value_counts()
+            total = counts.get(left_key, 0) + counts.get(right_key, 0)
+            if total == 0:
+                left_pct, right_pct = 0, 0
+            else:
+                left_pct = counts.get(left_key, 0) / total * 100
+                right_pct = counts.get(right_key, 0) / total * 100
+
+            y_labels.append(label)
+            left_bars.append(left_pct)
+            right_bars.append(right_pct)
+            left_labels.append(f"{left_pct:.1f}%")
+            right_labels.append(f"{right_pct:.1f}%")
+
+        y_pos = np.arange(len(y_labels))
+
+        # 왼쪽 바 (첫 글자)
+        ax.barh(y_pos, left_bars, color="#4ade80", label="첫 글자")  # 초록 계열
+        # 오른쪽 바 (둘째 글자)
+        ax.barh(y_pos, right_bars, left=left_bars, color="#60a5fa", label="둘째 글자")  # 파랑 계열
+
+        # 라벨(수치) 표시
+        for i in range(len(y_labels)):
+            ax.text(left_bars[i] / 2, i, left_labels[i], va="center", ha="center", color="black")
+            ax.text(left_bars[i] + right_bars[i] / 2, i, right_labels[i], va="center", ha="center", color="black")
+
+        ax.set_yticks(y_pos)
+        ax.set_yticklabels(y_labels)
+        ax.set_xlabel("비율 (%)")
+        ax.set_title("MBTI 요소 비율 막대형 히트맵")
+
+        ax.legend(loc="lower right")
+        plt.tight_layout()
+        st.pyplot(fig)
+
+
+
+# ==========================================
+# 🌈 소속별 MBTI 다양성 지수 (Shannon entropy)
+# ==========================================
+with st.expander("🌈 소속별 MBTI 다양성 지수"):
+    if "소속" not in df.columns or "MBTI" not in df.columns:
+        st.info("`소속` 또는 `MBTI` 컬럼이 없어 다양성 지수를 계산할 수 없습니다.")
+    else:
+        tmp = df[["소속", "MBTI"]].dropna().copy()
+        tmp["MBTI"] = tmp["MBTI"].astype(str).str.strip()
+        tmp = tmp[
+            (tmp["MBTI"] != "") & (~tmp["MBTI"].str.contains(r"\?")) & (tmp["MBTI"].str.len() >= 4)
+        ]
+
+        # 🔴 데이터분석랩 제외
+        tmp = tmp[tmp["소속"] != "데이터분석랩"]
+
+        if tmp.empty:
+            st.info("유효한 MBTI 데이터가 없어 다양성 지수를 계산할 수 없습니다.")
+        else:
+            def shannon_entropy(series: pd.Series) -> float:
+                counts = series.value_counts()
+                p = counts / counts.sum()
+                return float(-(p * np.log2(p)).sum())
+
+            diversity = tmp.groupby("소속")["MBTI"].apply(shannon_entropy)
+
+            st.markdown("값이 클수록 MBTI 구성이 다양한 팀입니다. (데이터분석랩 제외)")
+            fig_div = plot_bar_with_labels(
+                diversity.sort_values(ascending=False),
+                "소속별 MBTI 다양성 지수 (Shannon entropy)",
+                ylabel="Entropy",
+                color="#0EA5E9",  # 하늘색
+            )
+            st.pyplot(fig_div)
+
+
+# ==========================================
+# 👶 세대 구성 그래프
+# ==========================================
+with st.expander("👶 세대 구성 그래프"):
+    if "탄생년도_Y" not in df.columns:
+        st.info("정규화된 탄생년도(`탄생년도_Y`)가 없어 세대 구성을 계산할 수 없습니다.")
+    else:
+        gen_series = df["탄생년도_Y"].apply(generation_from_year)
+        gen_series = gen_series.dropna()
+
+        if gen_series.empty:
+            st.info("세대 정보를 계산할 수 있는 데이터가 없습니다.")
+        else:
+            # 전체 세대 분포
+            counts = gen_series.value_counts()
+            fig_g, ax_g = plt.subplots()
+            ax_g.pie(
+                counts.values,
+                labels=[f"{k} ({v})" for k, v in counts.items()],
+                autopct="%1.1f%%",
+                startangle=90,
+            )
+            ax_g.axis("equal")
+            st.markdown("**전체 세대 분포**")
+            st.pyplot(fig_g)
+
+            # 소속별 세대 분포 (비율)  👉 데이터분석랩 제외
+            if "소속" in df.columns:
+                tmp = pd.DataFrame({"소속": df["소속"], "세대": gen_series}).dropna()
+
+                # 🔴 데이터분석랩 제외
+                tmp = tmp[tmp["소속"] != "데이터분석랩"]
+
+                if not tmp.empty:
+                    pivot = (
+                        tmp.groupby(["소속", "세대"]).size().unstack(fill_value=0)
+                    )
+                    pivot_pct = pivot.div(pivot.sum(axis=1), axis=0) * 100
+
+                    st.markdown("**소속별 세대 비율 (%) (데이터분석랩 제외)**")
+                    fig_g2, ax_g2 = plt.subplots()
+                    bottom = np.zeros(len(pivot_pct))
+                    x = np.arange(len(pivot_pct.index))
+
+                    for gen in pivot_pct.columns:
+                        vals = pivot_pct[gen].values
+                        ax_g2.bar(x, vals, bottom=bottom, label=gen)
+                        bottom += vals
+
+                    ax_g2.set_xticks(x)
+                    ax_g2.set_xticklabels(pivot_pct.index, rotation=45, ha="right")
+                    ax_g2.set_ylabel("%")
+                    ax_g2.set_title("소속별 세대 비율 (Stacked)")
+                    ax_g2.legend(title="세대")
+                    plt.tight_layout()
+                    st.pyplot(fig_g2)
+                else:
+                    st.info("데이터분석랩을 제외하고는 세대 비율을 계산할 수 있는 데이터가 없습니다.")
+
+
+
+# ==========================================
+# 🤝 팀 케미 분석 (similar_map 기반)
+# ==========================================
+with st.expander("🤝 팀 케미 분석"):
+    # ldap -> node_id 매핑
+    ldap_to_nid = {}
+    for _, r in df.iterrows():
+        ldap_val = str(r.get("ldap", "") or "").strip()
+        if ldap_val:
+            ldap_to_nid[ldap_val] = r["node_id"]
+
+    pair_dict = {}
+    for nid, lst in similar_map.items():
+        for s in lst:
+            other_ldap = str(s.get("ldap", "") or "").strip()
+            other_nid = ldap_to_nid.get(other_ldap)
+            if not other_nid:
+                continue
+            key = tuple(sorted([nid, other_nid]))
+            cur = pair_dict.get(key)
+            if (cur is None) or (s["score"] > cur["score"]):
+                pair_dict[key] = {
+                    "A_id": key[0],
+                    "B_id": key[1],
+                    "score": s["score"],
+                    "reasons": s.get("reasons", ""),
+                }
+
+    if not pair_dict:
+        st.info("현재 설정된 엣지 기준으로 케미를 계산할 수 있는 쌍이 없습니다.")
+    else:
+        rows = []
+        for key, val in pair_dict.items():
+            a_row = df[df["node_id"] == val["A_id"]].iloc[0]
+            b_row = df[df["node_id"] == val["B_id"]].iloc[0]
+            rows.append(
+                {
+                    "A": f"{a_row.get('이름', '')} ({a_row.get('ldap', '')})",
+                    "B": f"{b_row.get('이름', '')} ({b_row.get('ldap', '')})",
+                    "케미 점수(조건 수)": int(val["score"]),
+                    "공통 조건": val["reasons"],
+                }
+            )
+
+        pair_df = pd.DataFrame(rows).sort_values(
+            "케미 점수(조건 수)", ascending=False
+        )
+
+        st.markdown("**케미 상위 TOP 10 쌍**")
+        st.dataframe(pair_df.head(10))
+
+        avg_score = pair_df["케미 점수(조건 수)"].mean()
+        max_score = pair_df["케미 점수(조건 수)"].max()
+        st.markdown(
+            f"- 전체 평균 케미 점수: **{avg_score:.2f}**  (최대 {max_score} 조건 일치)\n"
+            f"- 총 케미 쌍 수: **{len(pair_df)}**"
+        )
+
+        # 케미 점수 분포
+        fig_k = plot_bar_with_labels(
+            pair_df["케미 점수(조건 수)"].value_counts().sort_index(),
+            "케미 점수 분포 (조건 일치 개수)",
+            ylabel="쌍 수",
+        )
+        st.pyplot(fig_k)
+
 
 
 # ==========================================
@@ -1052,9 +1385,18 @@ with st.expander("📊 MBTI / 입사년도 분포 차트"):
 with st.expander("🖼 팀 구성도 포스터 뷰 (소속별 정렬)"):
     st.markdown("PDF로 저장하면 포스터처럼 사용할 수 있어요!")
 
+    # 원하는 소속 순서
+    dept_order = ["데이터분석랩", "BI셀", "데이터테크셀", "이상탐지셀"]
+
+    # 소속별 그룹
     grouped = df.groupby("소속")
 
-    for dept, group in grouped:
+    # 1) 우리가 지정한 순서대로 먼저 출력
+    for dept in dept_order:
+        if dept not in grouped.groups:
+            continue  # 해당 소속이 없으면 건너뛰기
+
+        group = grouped.get_group(dept)
         st.markdown(f"## 📌 {dept}")
         cols = st.columns(4)
 
@@ -1065,11 +1407,33 @@ with st.expander("🖼 팀 구성도 포스터 뷰 (소속별 정렬)"):
             if img:
                 col.image(img, width=120)
 
-            jy = extract_year(r["입사년도"])
+            jy = extract_year(r.get("입사년도"))
             col.markdown(
-                f"**{r['이름']}**  \n"
-                f"{r['직위']}  \n"
-                f"{jy or ''} 입사 · {r['MBTI']}"
+                f"**{r.get('이름','')}**  \n"
+                f"{r.get('직위','')}  \n"
+                f"{jy or ''} 입사 · {r.get('MBTI','')}"
+            )
+
+    # 2) 만약 다른 소속이 더 있다면, 나머지는 이름순/사전순으로 뒤에 출력
+    other_depts = [d for d in grouped.groups.keys() if d not in dept_order]
+
+    for dept in sorted(other_depts):
+        group = grouped.get_group(dept)
+        st.markdown(f"## 📌 {dept}")
+        cols = st.columns(4)
+
+        for idx, (_, r) in enumerate(group.iterrows()):
+            col = cols[idx % 4]
+            img = resolve_image(r)
+
+            if img:
+                col.image(img, width=120)
+
+            jy = extract_year(r.get("입사년도"))
+            col.markdown(
+                f"**{r.get('이름','')}**  \n"
+                f"{r.get('직위','')}  \n"
+                f"{jy or ''} 입사 · {r.get('MBTI','')}"
             )
 
 
