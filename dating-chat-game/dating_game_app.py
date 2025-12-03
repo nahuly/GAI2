@@ -4,7 +4,6 @@ import datetime
 
 import streamlit as st
 from openai import OpenAI
-import requests  # 디버그용, 필요 없으면 나중에 지워도 됨
 
 # -----------------------------
 # 기본 설정
@@ -35,6 +34,7 @@ def reset_game():
     st.session_state.partner_age = None
     st.session_state.nickname = ""
     st.session_state.score_saved = False
+    st.session_state.speech_style = "더 자연스럽게"
 
 
 def get_expression_image(liking: int, gender: str, mbti: str) -> str:
@@ -46,6 +46,29 @@ def get_expression_image(liking: int, gender: str, mbti: str) -> str:
     gender_key = "male" if gender == "남성" else "female"
     ft_key = "F" if "F" in mbti else "T"
     return os.path.join(BASE_DIR, "images", f"{feeling}_{gender_key}_{ft_key}.png")
+
+
+def get_style_instruction(style: str) -> str:
+    """말투 옵션에 따라 스타일 설명 문장 생성"""
+    if style == "더 세게":
+        return (
+            "전체적으로 도도하고 약간 직설적인 말투를 사용하라. "
+            "감정을 크게 드러내지 않으며 쿨한 느낌을 유지한다."
+        )
+    elif style == "더 수줍게":
+        return (
+            "말투는 조심스럽고 부끄러움을 타며, 문장 끝에 망설임이 느껴지는 표현을 사용한다. "
+            "감정 표현은 작고 여린 편이다."
+        )
+    elif style == "더 활발하게":
+        return (
+            "말투는 밝고 텐션이 높으며, 리액션이 크고 감정 표현이 적극적이다. "
+            "친근하고 에너지 넘치는 분위기로 말한다."
+        )
+    # 기본: 더 자연스럽게
+    return (
+        "말투는 자연스럽고 캐주얼하며, 일상 대화처럼 편안하고 부드럽다."
+    )
 
 
 def call_chat(messages, model="gpt-4.1", **kwargs):
@@ -100,7 +123,7 @@ def save_score():
 
 
 def load_scores():
-    """저장된 점수 읽어오기 (리스트 반환)"""
+    """저장된 점수 읽어오기 (리스트[dict])"""
     if not os.path.exists(SCORE_FILE):
         return []
 
@@ -128,13 +151,13 @@ if "history" not in st.session_state:
 # -----------------------------
 st.title("💔 MBTI 소개팅 Q&A 게임")
 
-# 1. MBTI / 성별 / 나이대 / 닉네임 선택 단계
+# 1. 닉네임 / MBTI / 성별 / 나이대 / 말투 선택 단계
 if not st.session_state.game_started:
     st.session_state.nickname = st.text_input(
         "당신의 닉네임을 입력하세요:",
         value=st.session_state.get("nickname", ""),
         max_chars=20,
-        placeholder="예: zoe",
+        placeholder="예: 나연짱",
     )
 
     st.session_state.partner_mbti = st.selectbox(
@@ -157,10 +180,17 @@ if not st.session_state.game_started:
         ["10대", "20대", "30대", "40대", "50대 이상"],
     )
 
+    st.session_state.speech_style = st.selectbox(
+        "상대방의 말투 스타일을 골라주세요:",
+        ["더 자연스럽게", "더 세게", "더 수줍게", "더 활발하게"],
+    )
+
     if st.button("💕 소개팅 시작"):
         if not st.session_state.nickname.strip():
             st.warning("닉네임을 먼저 입력해주세요!")
         else:
+            style_instruction = get_style_instruction(st.session_state.speech_style)
+
             # 시스템 프롬프트 세팅
             system_prompt = (
                 f"너는 소개팅에 나온 상대방이다. "
@@ -168,8 +198,9 @@ if not st.session_state.game_started:
                 f"성별은 '{st.session_state.partner_gender}', "
                 f"나이대는 '{st.session_state.partner_age}'이다. "
                 "MBTI, 성별, 나이대에 맞는 말투와 성격을 반영해서 대답하라. "
-                "첫 턴에서는 반드시 플레이어에게 짧고 자연스러운 질문을 한 가지 던져라. "
-                "불필요한 긴 설명은 하지 말고 반드시 질문으로 끝내라."
+                f"{style_instruction} "
+                "첫 턴에서는 자연스럽고 편안하게 인사하고 대화를 자연스럽게 시작하라. "
+                "질문을 꼭 하지 않아도 된다."
             )
 
             st.session_state.history = [{"role": "system", "content": system_prompt}]
@@ -179,7 +210,7 @@ if not st.session_state.game_started:
             st.session_state.ending_message = None
             st.session_state.score_saved = False
 
-            # 첫 질문 생성
+            # 첫 질문(또는 첫 멘트) 생성
             question = call_chat(
                 st.session_state.history,
                 temperature=0.7,
@@ -283,24 +314,26 @@ if st.session_state.game_started:
             # ---- 2) 다음 상대방 대답 or 엔딩 ----
             if st.session_state.turn <= MAX_TURNS:
                 response_prompt = st.session_state.history.copy()
+                style_instruction = get_style_instruction(
+                    st.session_state.speech_style
+                )
 
-                if st.session_state.turn > 1:
-                    response_prompt.insert(
-                        0,
-                        {
-                            "role": "system",
-                            "content": (
-                                f"너는 소개팅에 나온 상대방이다. "
-                                f"MBTI는 '{st.session_state.partner_mbti}'이고, "
-                                f"성별은 '{st.session_state.partner_gender}', "
-                                f"나이대는 '{st.session_state.partner_age}'이다. "
-                                "플레이어의 대답에 공감하거나 반응하면서 "
-                                "MBTI/성별/나이대 특성을 반영한 자연스러운 대답을 하라. "
-                                "꼭 질문으로 끝낼 필요는 없지만, "
-                                "자연스럽게 이어질 수 있도록 가끔은 질문을 포함해도 된다."
-                            ),
-                        },
-                    )
+                # 이후 턴에 적용할 system 프롬프트
+                response_prompt.insert(
+                    0,
+                    {
+                        "role": "system",
+                        "content": (
+                            f"너는 소개팅에 나온 상대방이다. "
+                            f"MBTI는 '{st.session_state.partner_mbti}'이고, "
+                            f"성별은 '{st.session_state.partner_gender}', "
+                            f"나이대는 '{st.session_state.partner_age}'이다. "
+                            f"{style_instruction} "
+                            "플레이어의 말에 자연스럽게 공감하거나 반응하며 편안하게 대화를 이어가라. "
+                            "질문을 반드시 할 필요는 없으며, 친구처럼 자연스럽게 대화하라."
+                        ),
+                    },
+                )
 
                 answer = call_chat(
                     response_prompt,
@@ -371,4 +404,3 @@ if scores:
 
 else:
     st.write("아직 기록된 점수가 없습니다. 첫 번째로 도전해보세요!")
-
