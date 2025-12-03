@@ -76,7 +76,7 @@ if not st.session_state.game_started:
 
         # 첫 질문 생성
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5.1",
             messages=st.session_state.history,
             temperature=0.7,
             max_tokens=100

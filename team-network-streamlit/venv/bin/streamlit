@@ -1,4 +1,4 @@
-#!/Users/kakaogames_1_2/Documents/GitHub/GAI2/test/venv/bin/python3.12
+#!/Users/kakaogames_1_2/Documents/GitHub/GAI2/team-network-streamlit/venv/bin/python
 import sys
 from streamlit.web.cli import main
 if __name__ == '__main__':
