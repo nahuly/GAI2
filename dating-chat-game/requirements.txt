@@ -4,4 +4,4 @@ matplotlib
 networkx
 numpy
 python-dateutil
-openai
+openai>=2.8.1
