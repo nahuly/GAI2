@@ -137,7 +137,7 @@ if st.session_state.game_started:
             ]
 
             judge = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-5.1",
                 messages=judge_prompt,
                 max_tokens=10
             ).choices[0].message.content.strip()
@@ -171,7 +171,7 @@ if st.session_state.game_started:
                     })
 
                 response = client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gpt-5.1",
                     messages=response_prompt,
                     temperature=0.8,
                     max_tokens=150
