@@ -351,9 +351,13 @@ scores = load_scores()
 if scores:
     # 호감도 높은 순 정렬
     scores_sorted = sorted(scores, key=lambda x: x["liking"], reverse=True)[:10]
-    st.table(
-        [
+
+    # 순위(1부터 시작) 컬럼 추가
+    ranked_scores = []
+    for i, s in enumerate(scores_sorted, start=1):
+        ranked_scores.append(
             {
+                "순위": i,
                 "닉네임": s["nickname"],
                 "MBTI": s["mbti"],
                 "성별": s["gender"],
@@ -361,8 +365,10 @@ if scores:
                 "호감도": s["liking"],
                 "엔딩": s["ending"],
             }
-            for s in scores_sorted
-        ]
-    )
+        )
+
+    st.table(ranked_scores)
+
 else:
     st.write("아직 기록된 점수가 없습니다. 첫 번째로 도전해보세요!")
+
