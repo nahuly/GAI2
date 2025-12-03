@@ -77,6 +77,24 @@ show_edge_joinyear = st.sidebar.checkbox("입사년도", value=False)
 show_edge_mbti     = st.sidebar.checkbox("MBTI", value=True)
 show_edge_blood    = st.sidebar.checkbox("혈액형", value=True)
 
+
+# -----------------------------------------
+# ➕ 사용자 정의 엣지 (CSV 컬럼 기준)
+# -----------------------------------------
+st.sidebar.markdown("### ➕ 사용자 정의 엣지")
+
+# 엣지로 쓰기 애매한 컬럼은 빼고 보여주기 (원하면 리스트 수정 가능)
+exclude_cols = ["이름", "ldap", "image", "Image", "node_id"]
+edge_candidate_cols = [c for c in df.columns if c not in exclude_cols]
+
+custom_edge_cols = st.sidebar.multiselect(
+    "같으면 엣지를 연결할 컬럼 선택",
+    edge_candidate_cols,
+    key="custom_edge_cols",
+    help="예: 거주지, 워크샵성향(2025) 등"
+)
+
+
 # -----------------------------------------
 # 검색 박스
 # -----------------------------------------
@@ -417,6 +435,12 @@ for i in range(len(rows_full)):
         if (show_edge_all or show_edge_blood) and valid_equal(r1["혈액형"], r2["혈액형"]):
             reasons.append("혈액형")
 
+        # 사용자 정의 엣지 컬럼들 (custom_edge_cols)
+        for col in custom_edge_cols:
+            if valid_equal(r1.get(col), r2.get(col)):
+                reasons.append(col)
+
+
         score = len(reasons)
         if score == 0:
             continue
@@ -541,6 +565,12 @@ def make_graph(df_people: pd.DataFrame):
                 r1["혈액형"], r2["혈액형"]
             ):
                 reasons.append(("혈액형", "같은 혈액형"))
+
+
+            # 사용자 정의 엣지 (사용자가 선택한 컬럼)
+            for col in custom_edge_cols:
+                if valid_equal(r1.get(col), r2.get(col)):
+                    reasons.append((col, f"같은 {col}"))
 
             if len(reasons) == 0:
                 continue
