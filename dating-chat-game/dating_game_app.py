@@ -2,8 +2,17 @@ import os
 import streamlit as st
 from openai import OpenAI
 
-# OpenAI 클라이언트 초기화
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# 디버깅용: 이상한 환경변수 있는지 확인 (나중엔 지워도 됨)
+st.write("DEBUG OPENAI_BASE_URL:", os.environ.get("OPENAI_BASE_URL"))
+st.write("DEBUG OPENAI_API_BASE:", os.environ.get("OPENAI_API_BASE"))
+st.write("DEBUG OPENAI_API_URL:", os.environ.get("OPENAI_API_URL"))
+
+# OpenAI 클라이언트 초기화 (base_url을 명시적으로 고정)
+client = OpenAI(
+    api_key=st.secrets["OPENAI_API_KEY"],
+    base_url="https://api.openai.com/v1",
+)
+
 
 MAX_TURNS = 5   # 턴 수
 MAX_LIKING = 100
