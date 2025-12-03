@@ -137,21 +137,21 @@ if "Image" in df.columns and "image" not in df.columns:
 df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
 
 
-# -----------------------------------------
-# ➕ 사용자 정의 엣지 (CSV 컬럼 기준)
-# -----------------------------------------
-st.sidebar.markdown("### ➕ 사용자 정의 엣지")
+# # -----------------------------------------
+# # ➕ 사용자 정의 엣지 (CSV 컬럼 기준)
+# # -----------------------------------------
+# st.sidebar.markdown("### ➕ 사용자 정의 엣지")
 
-# 엣지로 쓰기 애매한 컬럼은 빼고 보여주기 (원하면 리스트 수정 가능)
-exclude_cols = ["이름", "ldap", "image", "Image", "node_id"]
-edge_candidate_cols = [c for c in df.columns if c not in exclude_cols]
+# # 엣지로 쓰기 애매한 컬럼은 빼고 보여주기 (원하면 리스트 수정 가능)
+# exclude_cols = ["이름", "ldap", "image", "Image", "node_id"]
+# edge_candidate_cols = [c for c in df.columns if c not in exclude_cols]
 
-custom_edge_cols = st.sidebar.multiselect(
-    "같으면 엣지를 연결할 컬럼 선택",
-    edge_candidate_cols,
-    key="custom_edge_cols",
-    help="예: 거주지, 워크샵성향(2025) 등"
-)
+# custom_edge_cols = st.sidebar.multiselect(
+#     "같으면 엣지를 연결할 컬럼 선택",
+#     edge_candidate_cols,
+#     key="custom_edge_cols",
+#     help="예: 거주지, 워크샵성향(2025) 등"
+# )
 
 
 # -----------------------------------------
