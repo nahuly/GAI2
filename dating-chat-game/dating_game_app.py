@@ -1,6 +1,10 @@
 import os
+import csv
+import datetime
+
 import streamlit as st
 from openai import OpenAI
+import requests  # 디버그용, 필요 없으면 나중에 지워도 됨
 
 # -----------------------------
 # 기본 설정
@@ -8,11 +12,11 @@ from openai import OpenAI
 MAX_TURNS = 5        # 턴 수
 MAX_LIKING = 100     # 최대 호감도
 
-# 현재 app 파일 위치 (이미지 경로용)
+# 현재 app 파일 위치 (이미지/점수 파일 경로용)
 BASE_DIR = os.path.dirname(__file__)
+SCORE_FILE = os.path.join(BASE_DIR, "scores.csv")
 
 # OpenAI 클라이언트 초기화
-# st.secrets에 OPENAI_API_KEY가 들어있다고 가정
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 
@@ -29,6 +33,8 @@ def reset_game():
     st.session_state.partner_mbti = None
     st.session_state.partner_gender = None
     st.session_state.partner_age = None
+    st.session_state.nickname = ""
+    st.session_state.score_saved = False
 
 
 def get_expression_image(liking: int, gender: str, mbti: str) -> str:
@@ -55,8 +61,59 @@ def call_chat(messages, model="gpt-4.1", **kwargs):
         return resp.choices[0].message.content
     except Exception as e:
         st.error(f"❌ OpenAI 호출 중 오류가 발생했습니다: {type(e).__name__}")
+        cause = getattr(e, "__cause__", None)
+        if cause is not None:
+            st.code(f"원인: {type(cause).__name__} - {cause}")
         st.info("네트워크 또는 API 키 설정을 다시 확인해주세요.")
         return None
+
+
+def save_score():
+    """게임이 끝났을 때 점수를 scores.csv에 기록"""
+    if st.session_state.score_saved:
+        return  # 중복 저장 방지
+
+    os.makedirs(BASE_DIR, exist_ok=True)
+    file_exists = os.path.exists(SCORE_FILE)
+
+    with open(SCORE_FILE, "a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        # 처음 만들 때 헤더 작성
+        if not file_exists:
+            writer.writerow(
+                ["nickname", "mbti", "gender", "age", "liking", "ending", "timestamp"]
+            )
+
+        writer.writerow(
+            [
+                st.session_state.nickname,
+                st.session_state.partner_mbti,
+                st.session_state.partner_gender,
+                st.session_state.partner_age,
+                st.session_state.liking,
+                st.session_state.ending_message,
+                datetime.datetime.now().isoformat(timespec="seconds"),
+            ]
+        )
+
+    st.session_state.score_saved = True
+
+
+def load_scores():
+    """저장된 점수 읽어오기 (리스트 반환)"""
+    if not os.path.exists(SCORE_FILE):
+        return []
+
+    scores = []
+    with open(SCORE_FILE, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            try:
+                row["liking"] = int(row["liking"])
+            except Exception:
+                row["liking"] = 0
+            scores.append(row)
+    return scores
 
 
 # -----------------------------
@@ -71,11 +128,15 @@ if "history" not in st.session_state:
 # -----------------------------
 st.title("💔 MBTI 소개팅 Q&A 게임")
 
-# 디버그용: 키 존재 여부만 확인 (원하면 주석 해제)
-# st.write("🔑 OPENAI_API_KEY 존재 여부:", "OPENAI_API_KEY" in st.secrets)
-
-# 1. MBTI / 성별 / 나이대 선택 단계
+# 1. MBTI / 성별 / 나이대 / 닉네임 선택 단계
 if not st.session_state.game_started:
+    st.session_state.nickname = st.text_input(
+        "당신의 닉네임을 입력하세요:",
+        value=st.session_state.get("nickname", ""),
+        max_chars=20,
+        placeholder="예: 나연짱",
+    )
+
     st.session_state.partner_mbti = st.selectbox(
         "상대방의 MBTI를 골라주세요:",
         [
@@ -97,35 +158,43 @@ if not st.session_state.game_started:
     )
 
     if st.button("💕 소개팅 시작"):
-        # 시스템 프롬프트 세팅
-        system_prompt = (
-            f"너는 소개팅에 나온 상대방이다. "
-            f"MBTI는 '{st.session_state.partner_mbti}'이고, "
-            f"성별은 '{st.session_state.partner_gender}', "
-            f"나이대는 '{st.session_state.partner_age}'이다. "
-            "MBTI, 성별, 나이대에 맞는 말투와 성격을 반영해서 대답하라. "
-            "첫 턴에서는 반드시 플레이어에게 짧고 자연스러운 질문을 한 가지 던져라. "
-            "불필요한 긴 설명은 하지 말고 반드시 질문으로 끝내라."
-        )
+        if not st.session_state.nickname.strip():
+            st.warning("닉네임을 먼저 입력해주세요!")
+        else:
+            # 시스템 프롬프트 세팅
+            system_prompt = (
+                f"너는 소개팅에 나온 상대방이다. "
+                f"MBTI는 '{st.session_state.partner_mbti}'이고, "
+                f"성별은 '{st.session_state.partner_gender}', "
+                f"나이대는 '{st.session_state.partner_age}'이다. "
+                "MBTI, 성별, 나이대에 맞는 말투와 성격을 반영해서 대답하라. "
+                "첫 턴에서는 반드시 플레이어에게 짧고 자연스러운 질문을 한 가지 던져라. "
+                "불필요한 긴 설명은 하지 말고 반드시 질문으로 끝내라."
+            )
 
-        st.session_state.history = [{"role": "system", "content": system_prompt}]
-        st.session_state.turn = 1
-        st.session_state.game_started = True
-        st.session_state.liking = 50
+            st.session_state.history = [{"role": "system", "content": system_prompt}]
+            st.session_state.turn = 1
+            st.session_state.game_started = True
+            st.session_state.liking = 50
+            st.session_state.ending_message = None
+            st.session_state.score_saved = False
 
-        # 첫 질문 생성
-        question = call_chat(
-            st.session_state.history,
-            temperature=0.7,
-            max_tokens=100,
-        )
-        if question is not None:
-            st.session_state.history.append({"role": "assistant", "content": question})
-            st.rerun()
+            # 첫 질문 생성
+            question = call_chat(
+                st.session_state.history,
+                temperature=0.7,
+                max_tokens=100,
+            )
+            if question is not None:
+                st.session_state.history.append(
+                    {"role": "assistant", "content": question}
+                )
+                st.rerun()
 
 
 # 2. 게임 진행 단계
 if st.session_state.game_started:
+    st.write(f"플레이어: **{st.session_state.nickname}**")
     st.write(f"턴: {st.session_state.turn}/{MAX_TURNS}")
     st.progress(
         st.session_state.liking / MAX_LIKING,
@@ -152,11 +221,10 @@ if st.session_state.game_started:
                 f"{st.session_state.partner_age}):** {msg['content']}"
             )
         elif msg["role"] == "user":
-            st.markdown(f"**플레이어:** {msg['content']}")
+            st.markdown(f"**{st.session_state.nickname}:** {msg['content']}")
 
     # 플레이어 답변 입력
     if st.session_state.turn <= MAX_TURNS and not st.session_state.ending_message:
-        # 턴마다 key 달리해서 입력창 유지
         player_answer = st.text_input(
             "👉 당신의 대답:",
             key=f"turn_{st.session_state.turn}",
@@ -199,7 +267,6 @@ if st.session_state.game_started:
             )
 
             if judge_result is None:
-                # 판정이 실패하면 더 진행하지 않고 중단
                 st.stop()
 
             judge_result = judge_result.strip()
@@ -215,8 +282,6 @@ if st.session_state.game_started:
 
             # ---- 2) 다음 상대방 대답 or 엔딩 ----
             if st.session_state.turn <= MAX_TURNS:
-                # 이전 대화 히스토리를 그대로 사용하되,
-                # 두 번째 턴 이후에는 새로운 system 프롬프트를 맨 앞에 추가
                 response_prompt = st.session_state.history.copy()
 
                 if st.session_state.turn > 1:
@@ -261,12 +326,43 @@ if st.session_state.game_started:
                         "💔 상대방이 실망했습니다. 소개팅 실패..."
                     )
 
+                # 점수 저장
+                save_score()
+
             st.rerun()
 
     # 엔딩 + 다시 시작 버튼
     if st.session_state.ending_message:
         st.markdown("---")
-        st.markdown(st.session_state.ending_message)
+        st.markdown(f"**엔딩:** {st.session_state.ending_message}")
+        st.markdown(f"최종 호감도: **{st.session_state.liking} / {MAX_LIKING}**")
+
         if st.button("🔄 다시 도전하기"):
             reset_game()
             st.rerun()
+
+# -----------------------------
+# 랭킹 표시
+# -----------------------------
+st.markdown("---")
+st.subheader("🏆 최근 플레이어 랭킹 (호감도 순 Top 10)")
+
+scores = load_scores()
+if scores:
+    # 호감도 높은 순 정렬
+    scores_sorted = sorted(scores, key=lambda x: x["liking"], reverse=True)[:10]
+    st.table(
+        [
+            {
+                "닉네임": s["nickname"],
+                "MBTI": s["mbti"],
+                "성별": s["gender"],
+                "나이대": s["age"],
+                "호감도": s["liking"],
+                "엔딩": s["ending"],
+            }
+            for s in scores_sorted
+        ]
+    )
+else:
+    st.write("아직 기록된 점수가 없습니다. 첫 번째로 도전해보세요!")
