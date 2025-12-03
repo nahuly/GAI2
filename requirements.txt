@@ -7,3 +7,5 @@ matplotlib==3.9.2
 # 🔥 Cloud에서 꼭 필요한 최신 조합
 openai>=1.40.0
 httpx>=0.27.0
+python-dotenv
+
