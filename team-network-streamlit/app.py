@@ -908,13 +908,16 @@ if MISSING_IMAGES:
 
 import matplotlib.pyplot as plt
 
-def plot_bar_with_labels(data, title, xlabel="", ylabel="", color="#6366F1"):
+def plot_bar_with_labels(data, title, xlabel="", ylabel="", color="#6366F1", decimals=0):
     """
     data: pandas Series (index = label, values = 숫자)
     color: 막대 색 (기본 인디고)
+    decimals: 막대 위에 표시할 소수 자리 수
     """
     fig, ax = plt.subplots()
     bars = ax.bar(data.index.astype(str), data.values, color=color)
+
+    fmt = "{:." + str(decimals) + "f}"
 
     # 레이블 추가
     for bar in bars:
@@ -922,7 +925,7 @@ def plot_bar_with_labels(data, title, xlabel="", ylabel="", color="#6366F1"):
         ax.text(
             bar.get_x() + bar.get_width() / 2,
             yval,
-            f"{yval:.0f}",
+            fmt.format(yval),
             ha="center",
             va="bottom",
             fontsize=9,
@@ -989,8 +992,21 @@ with st.expander("📌 네트워크 중심성 분석 (Degree / Betweenness / Clo
             centrality_df.sort_values(metric, ascending=False)[metric].head(15),
             f"{metric} 상위 15명",
             ylabel="값",
+            decimals=1,   # 🔹 소수 첫째자리까지
         )
         st.pyplot(fig_c)
+
+        st.markdown(
+            """
+        **그래프 해석 가이드**
+
+        - 막대가 길수록 해당 지표 기준으로 네트워크에서 더 중심적인 사람입니다.  
+        - **Degree**: 연결된 사람 수가 많은 사람  
+        - **Betweenness**: 사람들 사이 경로를 많이 거치는 ‘허브’ 역할의 사람  
+        - **Closeness**: 다른 사람들에게 평균적으로 더 빨리 닿을 수 있는 사람  
+        - **Eigenvector**: 중요한 사람들과 많이 연결된 ‘영향력’ 높은 사람  
+        """
+        )
 
 
 # ==========================================
@@ -1066,6 +1082,7 @@ with st.expander("📊 MBTI / 입사년도 분포 차트"):
                 labels=[f"I ({count_I})", f"E ({count_E})"],
                 autopct="%1.1f%%",
                 startangle=90,
+                colors=["#4ade80", "#60a5fa"],  # 연두, 하늘
             )
             ax_ie.axis("equal")
             p1.markdown("**전체 I/E 비율**")
@@ -1085,6 +1102,7 @@ with st.expander("📊 MBTI / 입사년도 분포 차트"):
                 labels=[f"T ({count_T})", f"F ({count_F})"],
                 autopct="%1.1f%%",
                 startangle=90,
+                colors=["#f97316", "#a855f7"],  # 오렌지, 보라
             )
             ax_tf.axis("equal")
             p2.markdown("**전체 T/F 비율**")
@@ -1245,6 +1263,7 @@ with st.expander("🌈 소속별 MBTI 다양성 지수"):
                 "소속별 MBTI 다양성 지수 (Shannon entropy)",
                 ylabel="Entropy",
                 color="#0EA5E9",  # 하늘색
+                decimals=1,       # 🔹 소수 첫째자리
             )
             st.pyplot(fig_div)
 
@@ -1262,51 +1281,70 @@ with st.expander("👶 세대 구성 그래프"):
         if gen_series.empty:
             st.info("세대 정보를 계산할 수 있는 데이터가 없습니다.")
         else:
-            # 전체 세대 분포
-            counts = gen_series.value_counts()
-            fig_g, ax_g = plt.subplots()
-            ax_g.pie(
-                counts.values,
-                labels=[f"{k} ({v})" for k, v in counts.items()],
-                autopct="%1.1f%%",
-                startangle=90,
-            )
-            ax_g.axis("equal")
-            st.markdown("**전체 세대 분포**")
-            st.pyplot(fig_g)
+            col_g1, col_g2 = st.columns(2)
 
-            # 소속별 세대 분포 (비율)  👉 데이터분석랩 제외
-            if "소속" in df.columns:
-                tmp = pd.DataFrame({"소속": df["소속"], "세대": gen_series}).dropna()
+            # ---------------- 전체 세대 분포 (파이차트) ----------------
+            with col_g1:
+                counts = gen_series.value_counts()
+                # 예쁜 파스텔 팔레트
+                pie_colors = ["#4ade80", "#60a5fa", "#fbbf24", "#f472b6"]
+                fig_g, ax_g = plt.subplots()
+                ax_g.pie(
+                    counts.values,
+                    labels=[f"{k} ({v})" for k, v in counts.items()],
+                    autopct="%1.1f%%",
+                    startangle=90,
+                    colors=pie_colors[: len(counts)],
+                )
+                ax_g.axis("equal")
+                st.markdown("**전체 세대 분포**")
+                st.pyplot(fig_g)
 
-                # 🔴 데이터분석랩 제외
-                tmp = tmp[tmp["소속"] != "데이터분석랩"]
+            # ---------------- 소속별 세대 비율 (Stacked Bar, 좌측과 나란히) ----------------
+            with col_g2:
+                if "소속" in df.columns:
+                    tmp = pd.DataFrame({"소속": df["소속"], "세대": gen_series}).dropna()
 
-                if not tmp.empty:
-                    pivot = (
-                        tmp.groupby(["소속", "세대"]).size().unstack(fill_value=0)
-                    )
-                    pivot_pct = pivot.div(pivot.sum(axis=1), axis=0) * 100
+                    # 🔴 데이터분석랩 제외
+                    tmp = tmp[tmp["소속"] != "데이터분석랩"]
 
-                    st.markdown("**소속별 세대 비율 (%) (데이터분석랩 제외)**")
-                    fig_g2, ax_g2 = plt.subplots()
-                    bottom = np.zeros(len(pivot_pct))
-                    x = np.arange(len(pivot_pct.index))
+                    if not tmp.empty:
+                        pivot = (
+                            tmp.groupby(["소속", "세대"]).size().unstack(fill_value=0)
+                        )
+                        pivot_pct = pivot.div(pivot.sum(axis=1), axis=0) * 100
 
-                    for gen in pivot_pct.columns:
-                        vals = pivot_pct[gen].values
-                        ax_g2.bar(x, vals, bottom=bottom, label=gen)
-                        bottom += vals
+                        st.markdown("**소속별 세대 비율 (%) (데이터분석랩 제외)**")
+                        fig_g2, ax_g2 = plt.subplots()
+                        bottom = np.zeros(len(pivot_pct))
+                        x = np.arange(len(pivot_pct.index))
 
-                    ax_g2.set_xticks(x)
-                    ax_g2.set_xticklabels(pivot_pct.index, rotation=45, ha="right")
-                    ax_g2.set_ylabel("%")
-                    ax_g2.set_title("소속별 세대 비율 (Stacked)")
-                    ax_g2.legend(title="세대")
-                    plt.tight_layout()
-                    st.pyplot(fig_g2)
+                        # 세대별 색 지정 (있으면 사용, 없으면 위에서 쓰던 색 재활용)
+                        gen_colors = {
+                            "X세대": "#4ade80",
+                            "밀레니얼": "#60a5fa",
+                            "Z세대+": "#fbbf24",
+                        }
+                        default_colors = ["#4ade80", "#60a5fa", "#fbbf24", "#f472b6"]
+
+                        for i, gen in enumerate(pivot_pct.columns):
+                            vals = pivot_pct[gen].values
+                            color = gen_colors.get(gen, default_colors[i % len(default_colors)])
+                            ax_g2.bar(x, vals, bottom=bottom, label=gen, color=color)
+                            bottom += vals
+
+                        ax_g2.set_xticks(x)
+                        ax_g2.set_xticklabels(pivot_pct.index, rotation=45, ha="right")
+                        ax_g2.set_ylabel("%")
+                        ax_g2.set_title("소속별 세대 비율 (Stacked)")
+                        ax_g2.legend(title="세대")
+                        plt.tight_layout()
+                        st.pyplot(fig_g2)
+                    else:
+                        st.info("데이터분석랩을 제외하고는 세대 비율을 계산할 수 있는 데이터가 없습니다.")
                 else:
-                    st.info("데이터분석랩을 제외하고는 세대 비율을 계산할 수 있는 데이터가 없습니다.")
+                    st.info("`소속` 컬럼이 없어 소속별 세대 비율을 계산할 수 없습니다.")
+
 
 
 
