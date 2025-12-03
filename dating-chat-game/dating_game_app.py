@@ -157,7 +157,7 @@ if not st.session_state.game_started:
         "당신의 닉네임을 입력하세요:",
         value=st.session_state.get("nickname", ""),
         max_chars=20,
-        placeholder="예: 나연짱",
+        placeholder="예: zoe",
     )
 
     st.session_state.partner_mbti = st.selectbox(
