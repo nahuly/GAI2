@@ -728,22 +728,26 @@ with open(html_file, "r", encoding="utf-8") as f:
 meta = {}
 for _, r in df.iterrows():
     nid = r["node_id"]
+
+    s = stats.get(nid, {})   # ✅ 없으면 빈 dict
+
     meta[nid] = {
-        "이름": r["이름"],
-        "ldap": r["ldap"],
-        "소속": r["소속"],
-        "직위": r["직위"],
-        "직군": r["직군"],
-        "입사년도": extract_year(r["입사년도"]),
-        "MBTI": r["MBTI"],
-        "혈액형": r["혈액형"],
-        "동기 여부": r["동기 여부"],
-        "연결 수": stats[nid]["degree"],
-        "같은 소속 수": stats[nid]["same_dept"],
-        "같은 MBTI 수": stats[nid]["same_mbti"],
-        "같은 동기 수": stats[nid]["same_cohort"],
+        "이름": str(r.get("이름", "")),
+        "ldap": str(r.get("ldap", "")),
+        "소속": str(r.get("소속", "")),
+        "직위": str(r.get("직위", "")),
+        "직군": str(r.get("직군", "")),
+        "입사년도": str(r.get("입사년도", "")),
+        "MBTI": str(r.get("MBTI", "")),
+        "혈액형": str(r.get("혈액형", "")),
+        "동기 여부": str(r.get("동기 여부", "")),
+        "연결 수": s.get("degree", 0),        # ✅ KeyError 방지
+        "같은 소속 수": s.get("same_dept", 0),
+        "같은 MBTI 수": s.get("same_mbti", 0),
+        "같은 동기 수": s.get("same_cohort", 0),
         "similar": similar_map.get(nid, []),
     }
+
 
 focus_node_json = json.dumps(focus_node, ensure_ascii=False)
 
