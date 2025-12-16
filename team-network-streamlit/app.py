@@ -1729,6 +1729,7 @@ with ai_tabs[1]:
 with ai_tabs[2]:
     st.subheader("💞 팀원 간 궁합 분석")
 
+    # 기존 1:1 분석 UI 유지
     colA, colB = st.columns(2)
     name_a = colA.selectbox("A 팀원", df["이름"].unique(), key="chem_a")
     name_b = colB.selectbox("B 팀원", df["이름"].unique(), key="chem_b")
@@ -1739,13 +1740,61 @@ with ai_tabs[2]:
         else:
             a_row = df[df["이름"] == name_a].iloc[0]
             b_row = df[df["이름"] == name_b].iloc[0]
-
             with st.spinner("AI가 궁합 분석 중..."):
                 try:
                     result = ai_chemistry(a_row, b_row)
                     st.markdown(result)
                 except Exception as e:
                     st.error(f"오류 발생: {e}")
+
+    st.markdown("---")
+    st.subheader("🏆 전체 케미 랭킹 (조건 일치 기반, 빠름)")
+
+    # ✅ similar_map 기반 전체 페어 만들기 (기존 '🤝 팀 케미 분석'과 동일)
+    ldap_to_nid = {}
+    for _, r in df.iterrows():
+        ldap_val = str(r.get("ldap", "") or "").strip()
+        if ldap_val:
+            ldap_to_nid[ldap_val] = r["node_id"]
+
+    pair_dict = {}
+    for nid, lst in similar_map.items():
+        for s in lst:
+            other_ldap = str(s.get("ldap", "") or "").strip()
+            other_nid = ldap_to_nid.get(other_ldap)
+            if not other_nid:
+                continue
+            key = tuple(sorted([nid, other_nid]))
+            cur = pair_dict.get(key)
+            if (cur is None) or (s["score"] > cur["score"]):
+                pair_dict[key] = {
+                    "A_id": key[0],
+                    "B_id": key[1],
+                    "score": int(s["score"]),
+                    "reasons": s.get("reasons", ""),
+                }
+
+    if not pair_dict:
+        st.info("현재 설정된 엣지 기준으로 케미를 계산할 수 있는 쌍이 없습니다.")
+    else:
+        rows = []
+        for _, val in pair_dict.items():
+            a_row = df[df["node_id"] == val["A_id"]].iloc[0]
+            b_row = df[df["node_id"] == val["B_id"]].iloc[0]
+            rows.append(
+                {
+                    "A": f"{a_row.get('이름','')} ({a_row.get('ldap','')})",
+                    "B": f"{b_row.get('이름','')} ({b_row.get('ldap','')})",
+                    "케미점수(조건수)": val["score"],
+                    "공통 조건": val["reasons"],
+                }
+            )
+
+        pair_df_all = pd.DataFrame(rows).sort_values("케미점수(조건수)", ascending=False)
+
+        topn = st.slider("상위 몇 쌍까지 볼까요?", 10, min(200, len(pair_df_all)), 30)
+        st.dataframe(pair_df_all.head(topn), use_container_width=True)
+
 
 
 # ------------------------------------------
