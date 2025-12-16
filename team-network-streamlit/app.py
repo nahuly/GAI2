@@ -1700,11 +1700,12 @@ st.header("🔮 AI 분석 도구")
 ai_tabs = st.tabs([
     "📡 팀 네트워크 분석",
     "🧠 개인 프로필 AI 해석",
-    "💞 팀원 궁합 분석",
+    "💞 개별 궁합 분석",
+    "🏆 베스트 커플 랭킹",
+    "🧩 궁합 확장 분석",
     "⚡ 팀 슬로건 생성",
-    "👶 아이처럼 설명한 셀 소개"
+    "👶 아이처럼 설명한 셀 소개",
 ])
-
 
 # ------------------------------------------
 # 📡 1) 팀 네트워크 분석 요약
@@ -1719,7 +1720,6 @@ with ai_tabs[0]:
                 st.markdown(summary)
             except Exception as e:
                 st.error(f"오류 발생: {e}")
-
 
 # ------------------------------------------
 # 🧠 2) 개인 프로필 AI 해석
@@ -1741,16 +1741,36 @@ with ai_tabs[1]:
             except Exception as e:
                 st.error(f"오류 발생: {e}")
 
-
 # ------------------------------------------
-# 💞 3) 팀원 궁합 분석
+# 💞 3) 개별 궁합 분석 (1:1)
 # ------------------------------------------
 with ai_tabs[2]:
-    st.subheader("💞 팀원 간 궁합 분석")
+    st.subheader("💞 팀원 간 궁합 분석 (개별)")
 
-    # ===============================
-    # 1) 조건 기반 전체 케미 랭킹
-    # ===============================
+    colA, colB = st.columns(2)
+    name_a = colA.selectbox("A 팀원", df["이름"].unique(), key="chem_a_name")
+    name_b = colB.selectbox("B 팀원", df["이름"].unique(), key="chem_b_name")
+
+    if st.button("궁합 분석", key="btn_chem_verbose"):
+        if name_a == name_b:
+            st.warning("서로 다른 팀원을 선택해주세요.")
+        else:
+            a_row = df[df["이름"] == name_a].iloc[0]
+            b_row = df[df["이름"] == name_b].iloc[0]
+            with st.spinner("AI가 궁합을 설명하는 중..."):
+                try:
+                    result = ai_chemistry_verbose(a_row, b_row)
+                    st.markdown(result)
+                except Exception as e:
+                    st.error(f"오류 발생: {e}")
+
+# ------------------------------------------
+# 🏆 4) 베스트 커플 랭킹 (조건 기반 + AI 점수)
+# ------------------------------------------
+with ai_tabs[3]:
+    st.subheader("🏆 베스트 커플 랭킹")
+
+    # ====== 조건 기반 전체 케미 랭킹 생성 ======
     ldap_to_nid = {}
     for _, r in df.iterrows():
         if r.get("ldap"):
@@ -1762,7 +1782,6 @@ with ai_tabs[2]:
             other_nid = ldap_to_nid.get(str(s.get("ldap", "")))
             if not other_nid:
                 continue
-
             key = tuple(sorted([nid, other_nid]))
             if key not in pair_dict or s["score"] > pair_dict[key]["score"]:
                 pair_dict[key] = {
@@ -1789,27 +1808,24 @@ with ai_tabs[2]:
         .reset_index(drop=True)
     )
 
-    st.markdown("### 🏆 전체 케미 랭킹 (조건 기반)")
+    st.markdown("### 🧷 전체 케미 랭킹 (조건 기반)")
     st.dataframe(pair_df_all.head(30), use_container_width=True)
 
-    # ===============================
-    # 2) AI 점수 계산
-    # ===============================
+    # ====== AI 점수 (10점) ======
     st.markdown("---")
     st.markdown("### 🤖 AI 궁합 점수 (10점 만점)")
 
     ai_n = st.slider(
         "AI로 점수 계산할 상위 커플 수",
-        5, min(50, len(pair_df_all)), 10
+        5, min(50, len(pair_df_all)), 10,
+        key="ai_rank_n"
     )
 
-    if st.button("AI 궁합 점수 계산"):
+    if st.button("AI 궁합 점수 계산", key="btn_ai_rank"):
         out = []
-
-        with st.spinner("AI가 커플을 분석 중입니다..."):
+        with st.spinner("AI가 커플을 채점하는 중..."):
             for i in range(ai_n):
                 row = pair_df_all.iloc[i]
-
                 a_ldap = row["A"].split("(")[-1].replace(")", "").strip()
                 b_ldap = row["B"].split("(")[-1].replace(")", "").strip()
 
@@ -1817,19 +1833,19 @@ with ai_tabs[2]:
                 b_row = df[df["ldap"].astype(str) == b_ldap].iloc[0]
 
                 try:
-                    raw = ai_chemistry(a_row, b_row)
+                    raw = ai_chemistry(a_row, b_row)      # JSON 반환 함수
                     obj = safe_json_loads(raw)
 
                     out.append({
                         **row,
                         "AI점수(10)": float(obj.get("score_10", 0)),
-                        "AI요약": obj.get("log_style", ""),
+                        "요약": obj.get("summary", obj.get("log_style", "")),
                     })
                 except Exception as e:
                     out.append({
                         **row,
                         "AI점수(10)": np.nan,
-                        "AI요약": f"오류: {e}",
+                        "요약": f"오류: {e}",
                     })
 
         ai_rank_df = (
@@ -1838,16 +1854,24 @@ with ai_tabs[2]:
             .reset_index(drop=True)
         )
 
+        st.session_state["ai_rank_df"] = ai_rank_df
+        st.session_state["pair_df_all"] = pair_df_all
+
         st.markdown("### 🥇 베스트 커플 랭킹 (AI 기준)")
         st.dataframe(ai_rank_df, use_container_width=True)
 
-        # ==========================================================
-        # 3) 확장 분석: 셀 내부 / 위험 조합 / 리더–서포터
-        # ==========================================================
-        st.markdown("---")
-        st.markdown("## 🔎 확장 분석")
+# ------------------------------------------
+# 🧩 5) 궁합 확장 분석 (셀 내부 / 위험 / 리더-서포터)
+# ------------------------------------------
+with ai_tabs[4]:
+    st.subheader("🧩 궁합 확장 분석")
 
-        # --- 준비: ldap -> 소속/직위 매핑 ---
+    if "ai_rank_df" not in st.session_state:
+        st.info("먼저 '🏆 베스트 커플 랭킹' 탭에서 AI 점수를 계산해주세요.")
+    else:
+        ai_rank_df = st.session_state["ai_rank_df"].copy()
+
+        # --- 매핑 준비 ---
         ldap_to_dept = df.set_index("ldap")["소속"].to_dict()
         ldap_to_rank = df.set_index("ldap")["직위"].to_dict()
 
@@ -1855,28 +1879,21 @@ with ai_tabs[2]:
             r = str(rank).strip()
             return "리더" if r in ("실장", "셀장") else "서포터"
 
-        # ai_rank_df에서 A/B ldap 추출
         ext = ai_rank_df.copy()
         ext["A_ldap"] = ext["A"].str.extract(r"\((.*?)\)")
         ext["B_ldap"] = ext["B"].str.extract(r"\((.*?)\)")
         ext["A_소속"] = ext["A_ldap"].map(ldap_to_dept)
         ext["B_소속"] = ext["B_ldap"].map(ldap_to_dept)
-        ext["A_직위"] = ext["A_ldap"].map(ldap_to_rank)
-        ext["B_직위"] = ext["B_ldap"].map(ldap_to_rank)
-        ext["A_role"] = ext["A_직위"].map(role_group)
-        ext["B_role"] = ext["B_직위"].map(role_group)
+        ext["A_role"] = ext["A_ldap"].map(ldap_to_rank).map(role_group)
+        ext["B_role"] = ext["B_ldap"].map(ldap_to_rank).map(role_group)
 
-        tab1, tab2, tab3 = st.tabs(["🧩 셀 내부 베스트", "⚠️ 위험 조합 Top5", "🧭 리더–서포터"])
+        t1, t2, t3 = st.tabs(["🧩 셀 내부 베스트", "⚠️ 위험 조합 Top5", "🧭 리더–서포터"])
 
-        # -----------------------------
-        # (A) 셀 내부 베스트 커플
-        # -----------------------------
-        with tab1:
+        with t1:
             st.markdown("### 🧩 셀 내부 베스트 커플 (AI 기준)")
             same_dept = ext[ext["A_소속"] == ext["B_소속"]].copy()
-
             if same_dept.empty:
-                st.info("현재 AI 점수 계산 범위(ai_n) 안에서는 셀 내부 커플이 없습니다. ai_n을 늘려보세요.")
+                st.info("현재 AI 점수 계산 범위 안에서는 셀 내부 커플이 없습니다. (랭킹 탭에서 ai_n을 늘려보세요.)")
             else:
                 best_by_dept = (
                     same_dept.sort_values("AI점수(10)", ascending=False)
@@ -1885,56 +1902,46 @@ with ai_tabs[2]:
                     .rename(columns={"A_소속": "소속"})
                 )
                 st.dataframe(
-                    best_by_dept[["소속", "A", "B", "AI점수(10)", "AI요약", "공통 조건"]],
+                    best_by_dept[["소속", "A", "B", "AI점수(10)", "요약", "공통 조건"]],
                     use_container_width=True
                 )
 
-        # -----------------------------
-        # (B) 위험 조합 Top5
-        # -----------------------------
-        with tab2:
-            st.markdown("### ⚠️ 위험 조합 Top5 (AI 기준)")
+        with t2:
+            st.markdown("### ⚠️ 위험 조합 Top5 (AI 점수 낮은 순)")
             risk_top5 = ext.sort_values("AI점수(10)", ascending=True).head(5)
             st.dataframe(
-                risk_top5[["A", "B", "AI점수(10)", "AI요약", "공통 조건"]],
+                risk_top5[["A", "B", "AI점수(10)", "요약", "공통 조건"]],
                 use_container_width=True
             )
 
-        # -----------------------------
-        # (C) 리더–서포터 궁합
-        # -----------------------------
-        with tab3:
-            st.markdown("### 🧭 리더–서포터 궁합 (AI 기준)")
-
+        with t3:
+            st.markdown("### 🧭 리더–서포터 궁합")
             leader_support = ext[
                 ((ext["A_role"] == "리더") & (ext["B_role"] == "서포터")) |
                 ((ext["A_role"] == "서포터") & (ext["B_role"] == "리더"))
             ].copy()
 
             if leader_support.empty:
-                st.info("현재 AI 점수 계산 범위(ai_n) 안에서는 리더–서포터 커플이 없습니다. ai_n을 늘려보세요.")
+                st.info("현재 AI 점수 계산 범위 안에서는 리더–서포터 커플이 없습니다. (랭킹 탭에서 ai_n을 늘려보세요.)")
             else:
-                st.markdown("#### 🥇 리더–서포터 베스트 TOP10")
+                st.markdown("#### 🥇 베스트 TOP10")
                 st.dataframe(
                     leader_support.sort_values("AI점수(10)", ascending=False)
-                    .head(10)[["A", "B", "A_role", "B_role", "AI점수(10)", "AI요약", "공통 조건"]],
+                    .head(10)[["A", "B", "A_role", "B_role", "AI점수(10)", "요약", "공통 조건"]],
                     use_container_width=True
                 )
 
-                st.markdown("#### ⚠️ 리더–서포터 위험 TOP5")
+                st.markdown("#### ⚠️ 위험 TOP5")
                 st.dataframe(
                     leader_support.sort_values("AI점수(10)", ascending=True)
-                    .head(5)[["A", "B", "A_role", "B_role", "AI점수(10)", "AI요약", "공통 조건"]],
+                    .head(5)[["A", "B", "A_role", "B_role", "AI점수(10)", "요약", "공통 조건"]],
                     use_container_width=True
                 )
 
-
-
-
 # ------------------------------------------
-# ⚡ 4) 팀 슬로건 생성
+# ⚡ 6) 팀 슬로건 생성
 # ------------------------------------------
-with ai_tabs[3]:
+with ai_tabs[5]:
     st.subheader("⚡ 팀 슬로건 만들기")
 
     if st.button("슬로건 자동 생성", key="btn_slogan"):
@@ -1945,11 +1952,10 @@ with ai_tabs[3]:
             except Exception as e:
                 st.error(f"오류 발생: {e}")
 
-
 # ------------------------------------------
-# 👶 5) 아이처럼 설명한 셀 소개
+# 👶 7) 아이처럼 설명한 셀 소개
 # ------------------------------------------
-with ai_tabs[4]:
+with ai_tabs[6]:
     st.subheader("👶 아이처럼 설명한 셀 소개")
 
     if st.button("셀 소개 생성하기", key="btn_childlike"):
