@@ -1607,19 +1607,38 @@ B:
 - 직위: {b_row['직위']}
 - MBTI: {b_row['MBTI']}
 
-Return:
-1) 전체 케미 점수 (10점 기준)
-2) 잘 맞는 이유
-3) 부딪힐 수 있는 부분
-4) 협업 시 팁 3가지
-5) 해석 스타일은 “프로 리더의 관찰일지” 느낌
+아래 JSON 형식으로만 출력하세요.
+{{
+  "score_10": 0~10 사이 숫자,
+  "good": ["이유1", "이유2", "이유3"],
+  "risk": ["주의점1", "주의점2"],
+  "tips": ["협업팁1", "협업팁2", "협업팁3"],
+  "log_style": "프로 리더의 관찰일지 톤 요약"
+}}
 """
-
     resp = client.responses.create(
         model="gpt-4.1",
         input=prompt
     )
     return resp.output_text
+
+
+
+def safe_json_loads(s: str):
+    if not s:
+        raise ValueError("empty response")
+
+    s = re.sub(r"^```(?:json)?\s*|\s*```$", "", s.strip(), flags=re.IGNORECASE)
+
+    l = s.find("{")
+    r = s.rfind("}")
+    if l == -1 or r == -1 or r <= l:
+        raise ValueError("no json object found")
+
+    return json.loads(s[l:r+1])
+
+
+
 
 
 # ------------------------------------------
@@ -1729,71 +1748,93 @@ with ai_tabs[1]:
 with ai_tabs[2]:
     st.subheader("💞 팀원 간 궁합 분석")
 
-    # 기존 1:1 분석 UI 유지
-    colA, colB = st.columns(2)
-    name_a = colA.selectbox("A 팀원", df["이름"].unique(), key="chem_a")
-    name_b = colB.selectbox("B 팀원", df["이름"].unique(), key="chem_b")
-
-    if st.button("궁합 분석하기", key="btn_chem"):
-        if name_a == name_b:
-            st.warning("서로 다른 팀원을 선택해주세요!")
-        else:
-            a_row = df[df["이름"] == name_a].iloc[0]
-            b_row = df[df["이름"] == name_b].iloc[0]
-            with st.spinner("AI가 궁합 분석 중..."):
-                try:
-                    result = ai_chemistry(a_row, b_row)
-                    st.markdown(result)
-                except Exception as e:
-                    st.error(f"오류 발생: {e}")
-
-    st.markdown("---")
-    st.subheader("🏆 전체 케미 랭킹 (조건 일치 기반, 빠름)")
-
-    # ✅ similar_map 기반 전체 페어 만들기 (기존 '🤝 팀 케미 분석'과 동일)
+    # ===============================
+    # 1. 조건 기반 전체 케미 랭킹
+    # ===============================
     ldap_to_nid = {}
     for _, r in df.iterrows():
-        ldap_val = str(r.get("ldap", "") or "").strip()
-        if ldap_val:
-            ldap_to_nid[ldap_val] = r["node_id"]
+        if r.get("ldap"):
+            ldap_to_nid[str(r["ldap"])] = r["node_id"]
 
     pair_dict = {}
     for nid, lst in similar_map.items():
         for s in lst:
-            other_ldap = str(s.get("ldap", "") or "").strip()
-            other_nid = ldap_to_nid.get(other_ldap)
+            other_nid = ldap_to_nid.get(str(s.get("ldap", "")))
             if not other_nid:
                 continue
             key = tuple(sorted([nid, other_nid]))
-            cur = pair_dict.get(key)
-            if (cur is None) or (s["score"] > cur["score"]):
+            if key not in pair_dict or s["score"] > pair_dict[key]["score"]:
                 pair_dict[key] = {
                     "A_id": key[0],
                     "B_id": key[1],
                     "score": int(s["score"]),
-                    "reasons": s.get("reasons", ""),
+                    "reasons": s.get("reasons", "")
                 }
 
-    if not pair_dict:
-        st.info("현재 설정된 엣지 기준으로 케미를 계산할 수 있는 쌍이 없습니다.")
-    else:
-        rows = []
-        for _, val in pair_dict.items():
-            a_row = df[df["node_id"] == val["A_id"]].iloc[0]
-            b_row = df[df["node_id"] == val["B_id"]].iloc[0]
-            rows.append(
-                {
-                    "A": f"{a_row.get('이름','')} ({a_row.get('ldap','')})",
-                    "B": f"{b_row.get('이름','')} ({b_row.get('ldap','')})",
-                    "케미점수(조건수)": val["score"],
-                    "공통 조건": val["reasons"],
-                }
-            )
+    rows = []
+    for v in pair_dict.values():
+        a = df[df["node_id"] == v["A_id"]].iloc[0]
+        b = df[df["node_id"] == v["B_id"]].iloc[0]
+        rows.append({
+            "A": f"{a['이름']} ({a['ldap']})",
+            "B": f"{b['이름']} ({b['ldap']})",
+            "케미점수(조건수)": v["score"],
+            "공통 조건": v["reasons"]
+        })
 
-        pair_df_all = pd.DataFrame(rows).sort_values("케미점수(조건수)", ascending=False)
+    pair_df_all = (
+        pd.DataFrame(rows)
+        .sort_values("케미점수(조건수)", ascending=False)
+        .reset_index(drop=True)
+    )
 
-        topn = st.slider("상위 몇 쌍까지 볼까요?", 10, min(200, len(pair_df_all)), 30)
-        st.dataframe(pair_df_all.head(topn), use_container_width=True)
+    st.markdown("### 🏆 전체 케미 랭킹 (조건 기반)")
+    st.dataframe(pair_df_all.head(30), use_container_width=True)
+
+    # ===============================
+    # 2. AI 점수 계산
+    # ===============================
+    st.markdown("---")
+    st.markdown("### 🤖 AI 궁합 점수 (10점 만점)")
+
+    ai_n = st.slider(
+        "AI로 점수 계산할 상위 커플 수",
+        5, min(50, len(pair_df_all)), 10
+    )
+
+    if st.button("AI 궁합 점수 계산"):
+        out = []
+        with st.spinner("AI가 커플을 분석 중입니다..."):
+            for i in range(ai_n):
+                row = pair_df_all.iloc[i]
+                a_ldap = row["A"].split("(")[-1].replace(")", "")
+                b_ldap = row["B"].split("(")[-1].replace(")", "")
+
+                a_row = df[df["ldap"] == a_ldap].iloc[0]
+                b_row = df[df["ldap"] == b_ldap].iloc[0]
+
+                try:
+                    raw = ai_chemistry(a_row, b_row)
+                    obj = safe_json_loads(raw)
+                    out.append({
+                        **row,
+                        "AI점수(10)": float(obj["score_10"]),
+                        "AI요약": obj["log_style"]
+                    })
+                except Exception as e:
+                    out.append({
+                        **row,
+                        "AI점수(10)": np.nan,
+                        "AI요약": f"오류: {e}"
+                    })
+
+        ai_rank_df = (
+            pd.DataFrame(out)
+            .sort_values("AI점수(10)", ascending=False)
+        )
+
+        st.markdown("### 🥇 베스트 커플 랭킹 (AI 기준)")
+        st.dataframe(ai_rank_df, use_container_width=True)
 
 
 
